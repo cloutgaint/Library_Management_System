@@ -19,6 +19,8 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const recommendationRoutes = require("./routes/recommendationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const roleDashboardRoutes = require("./routes/roleDashboardRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
@@ -47,6 +49,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/dashboard-overview", roleDashboardRoutes);
+app.use("/api/settings", settingsRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
