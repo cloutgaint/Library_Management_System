@@ -66,14 +66,14 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware("admin"),
+  roleMiddleware("admin", "librarian"),
   editMember
 );
 
 router.patch(
   "/:id/status",
   authMiddleware,
-  roleMiddleware("admin"),
+  roleMiddleware("admin", "librarian"),
   changeMembershipStatus
 );
 

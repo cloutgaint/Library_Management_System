@@ -77,6 +77,15 @@ const addMember = async (req, res) => {
       });
     }
 
+    // Membership records belong to member accounts only, never to staff.
+    const owner = await pool.query("SELECT role FROM users WHERE id = $1", [user_id]);
+
+    if (owner.rows[0]?.role !== "member") {
+      return res.status(400).json({
+        message: "Memberships can only be created for member accounts",
+      });
+    }
+
     const member = await createMember(
       user_id,
       phone || "",

@@ -200,7 +200,7 @@ const cancelReservation = async (
 
     if (
       userRole === "member" &&
-      reservation.user_id !== userId
+      String(reservation.user_id) !== String(userId)
     ) {
       throw new Error("Access denied");
     }
