@@ -252,23 +252,47 @@ const cancelReservation = async (
 };
 
 const markReservationReady = async (reservationId) => {
-  const query = `
-    UPDATE reservations
-    SET
-      status = 'Ready',
-      queue_position = NULL
-    WHERE id = $1
-      AND status = 'Waiting'
-    RETURNING *;
-  `;
-
-  const result = await pool.query(query, [reservationId]);
-
-  if (result.rows.length === 0) {
-    throw new Error("Reservation not found or not waiting");
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const target = await client.query(
+      "SELECT book_id FROM reservations WHERE id = $1", [reservationId]
+    );
+    if (!target.rows.length) throw new Error("Reservation not found");
+    const book = await client.query(
+      "SELECT available_copies FROM books WHERE id = $1 FOR UPDATE",
+      [target.rows[0].book_id]
+    );
+    if (!book.rows.length || book.rows[0].available_copies <= 0) {
+      throw new Error("No available copy for reservation");
+    }
+    const head = await client.query(
+      `SELECT id FROM reservations WHERE book_id = $1 AND status = 'Waiting'
+       ORDER BY reservation_date ASC, id ASC LIMIT 1`,
+      [target.rows[0].book_id]
+    );
+    if (!head.rows.length || String(head.rows[0].id) !== String(reservationId)) {
+      throw new Error("Reservation is not first in FIFO queue");
+    }
+    const updated = await client.query(
+      `UPDATE reservations SET status = 'Ready', queue_position = NULL,
+       ready_at = NOW(), expires_at = NOW() + INTERVAL '2 days'
+       WHERE id = $1 AND status = 'Waiting' RETURNING *`,
+      [reservationId]
+    );
+    await client.query(
+      `UPDATE reservations SET queue_position = queue_position - 1
+       WHERE book_id = $1 AND status = 'Waiting' AND queue_position > 1`,
+      [target.rows[0].book_id]
+    );
+    await client.query("COMMIT");
+    return updated.rows[0];
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
-
-  return result.rows[0];
 };
 
 const autoCancelExpiredReservations = async () => {
