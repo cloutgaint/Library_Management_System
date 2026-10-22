@@ -51,8 +51,8 @@ function Register() {
     if (password === "") {
       setPasswordError("Password is required");
       valid = false;
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    } else if (password.length < 10) {
+      setPasswordError("Password must be at least 10 characters");
       valid = false;
     }
 
@@ -85,7 +85,6 @@ function Register() {
             full_name: name,
             email: email,
             password: password,
-            role: "member",
           }),
         }
       );
