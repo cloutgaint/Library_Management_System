@@ -101,7 +101,8 @@ const createReservation = async (memberId, bookId) => {
       `
       SELECT id, title
       FROM books
-      WHERE id = $1;
+      WHERE id = $1
+      FOR UPDATE;
       `,
       [bookId]
     );
@@ -204,7 +205,7 @@ const cancelReservation = async (
       throw new Error("Access denied");
     }
 
-    if (reservation.status === "Cancelled") {
+    if (!["Waiting", "Ready"].includes(reservation.status)) {
       throw new Error("Reservation already cancelled");
     }
 
@@ -277,7 +278,7 @@ const autoCancelExpiredReservations = async () => {
       status = 'Cancelled',
       queue_position = NULL
     WHERE status = 'Ready'
-      AND reservation_date < CURRENT_TIMESTAMP - INTERVAL '2 days'
+      AND expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP
     RETURNING *;
   `;
 
