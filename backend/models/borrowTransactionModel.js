@@ -61,6 +61,7 @@ const issueBook = async (memberId, bookId, dueDate) => {
   try {
     await client.query("BEGIN");
 
+<<<<<<< HEAD
     const memberResult = await client.query(
       `SELECT id, membership_status, membership_expiry >= CURRENT_DATE AS is_current
        FROM members WHERE id = $1 FOR UPDATE;`,
@@ -72,6 +73,25 @@ const issueBook = async (memberId, bookId, dueDate) => {
         !member.is_current) {
       throw new Error("Membership is not active");
     }
+=======
+    const eligibility = await client.query(
+      `SELECT membership_status, membership_expiry >= CURRENT_DATE AS current
+       FROM members WHERE id = $1 FOR UPDATE`, [memberId]
+    );
+    if (!eligibility.rows.length) throw new Error("Member not found");
+    if (eligibility.rows[0].membership_status !== "Active" || !eligibility.rows[0].current) {
+      throw new Error("Membership is not active");
+    }
+    const policy = await client.query("SELECT max_active_loans FROM circulation_policy WHERE id = 1");
+    const maxLoans = policy.rows[0]?.max_active_loans ?? 5;
+    const active = await client.query(
+      "SELECT COUNT(*)::integer AS count FROM borrow_transactions WHERE member_id = $1 AND transaction_status = 'Issued'",
+      [memberId]
+    );
+    if (active.rows[0].count >= maxLoans) throw new Error("Borrowing limit reached");
+    const validDueDate = await client.query("SELECT $1::date > CURRENT_DATE AS valid", [dueDate]);
+    if (!validDueDate.rows[0].valid) throw new Error("Due date must be in the future");
+>>>>>>> feature/lms-complete-integration
 
     const bookResult = await client.query(
       `

@@ -19,6 +19,14 @@ const getBookCoverFromISBN = (isbn) => {
   return `https://covers.openlibrary.org/b/isbn/${cleanISBN}-L.jpg`;
 };
 
+const validateCopies = (total, available) => {
+  if (!Number.isSafeInteger(total) || total < 0 ||
+      !Number.isSafeInteger(available) || available < 0 || available > total) {
+    return "Copy counts must be whole numbers with 0 <= available_copies <= total_copies";
+  }
+  return null;
+};
+
 // Get all books
 const getBooks = async (req, res) => {
   try {
@@ -87,6 +95,12 @@ const addBook = async (req, res) => {
     const coverImage =
       image?.trim() || getBookCoverFromISBN(isbn);
 
+    const copyError = validateCopies(
+      total_copies === undefined ? 1 : total_copies,
+      available_copies === undefined ? (total_copies === undefined ? 1 : total_copies) : available_copies
+    );
+    if (copyError) return res.status(400).json({ message: copyError });
+
     const book = await createBook(
       title,
       author,
@@ -95,8 +109,8 @@ const addBook = async (req, res) => {
       status || "Available",
       description || "",
       coverImage,
-      total_copies || 1,
-      available_copies || 1
+      total_copies === undefined ? 1 : total_copies,
+      available_copies === undefined ? (total_copies === undefined ? 1 : total_copies) : available_copies
     );
 
     res.status(201).json({
@@ -131,6 +145,9 @@ const editBook = async (req, res) => {
 
     const coverImage =
       image?.trim() || getBookCoverFromISBN(isbn);
+
+    const copyError = validateCopies(total_copies, available_copies);
+    if (copyError) return res.status(400).json({ message: copyError });
 
     const book = await updateBook(
       id,

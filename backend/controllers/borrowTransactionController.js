@@ -142,12 +142,24 @@ const issueBookController = async (req, res) => {
   } catch (error) {
     console.error("Issue Book Error:", error);
 
+<<<<<<< HEAD
     if (error.message === "Membership is not active") {
       return res.status(403).json({ message: "Membership is expired or suspended" });
     }
     if (error.message === "Member not found") {
       return res.status(404).json({ message: "Member not found" });
     }
+=======
+    if (error.message === "Member not found") {
+      return res.status(404).json({ message: "Member not found" });
+    }
+    if (error.message === "Membership is not active" || error.message === "Borrowing limit reached") {
+      return res.status(403).json({ message: error.message });
+    }
+    if (error.message === "Due date must be in the future") {
+      return res.status(400).json({ message: error.message });
+    }
+>>>>>>> feature/lms-complete-integration
     if (error.message === "Book not found") {
       return res.status(404).json({
         message: "Book not found",
