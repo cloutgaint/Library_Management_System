@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-function ProfileCard({ member, onProfileImageChange }) {
+function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(member.full_name || "");
   const [phone, setPhone] = useState(member.phone || "");
@@ -46,9 +46,11 @@ function ProfileCard({ member, onProfileImageChange }) {
         throw new Error(data.message || "Failed to update profile");
       }
 
-      member.full_name = data.member.full_name;
-      member.phone = data.member.phone;
-      member.address = data.member.address;
+      onProfileUpdate?.({
+        full_name: data.member.full_name,
+        phone: data.member.phone,
+        address: data.member.address,
+      });
 
       setFullName(data.member.full_name || "");
       setPhone(data.member.phone || "");

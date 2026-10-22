@@ -67,6 +67,12 @@ function Profile() {
 
         <ProfileCard
           member={member}
+          onProfileUpdate={(updates) => {
+            setMember((previousMember) => ({
+              ...previousMember,
+              ...updates,
+            }));
+          }}
           onProfileImageChange={(newImage) => {
             setMember((previousMember) => ({
               ...previousMember,
