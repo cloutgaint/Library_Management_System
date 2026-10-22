@@ -266,6 +266,13 @@ const markReservationReady = async (reservationId) => {
     if (!book.rows.length || book.rows[0].available_copies <= 0) {
       throw new Error("No available copy for reservation");
     }
+    const readyCount = await client.query(
+      "SELECT COUNT(*)::integer AS count FROM reservations WHERE book_id = $1 AND status = 'Ready'",
+      [target.rows[0].book_id]
+    );
+    if (readyCount.rows[0].count >= book.rows[0].available_copies) {
+      throw new Error("All available copies are already held for pickup");
+    }
     const head = await client.query(
       `SELECT id FROM reservations WHERE book_id = $1 AND status = 'Waiting'
        ORDER BY reservation_date ASC, id ASC LIMIT 1`,
