@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = "http://localhost:5000";
+import { API_BASE_URL as API_BASE } from "../../lib/api";
 
 function ReservationQueue() {
 const [reservations, setReservations] = useState([]);

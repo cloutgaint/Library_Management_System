@@ -14,6 +14,7 @@ Tooltip,
 Legend,
 ResponsiveContainer,
 } from "recharts";
+import { apiUrl } from "../../lib/api";
 
 function Charts() {
 const [books, setBooks] = useState([]);
@@ -31,7 +32,7 @@ setError("");
     const token = localStorage.getItem("token");
 
     const booksResponse = await fetch(
-      "http://localhost:5000/api/books",
+      apiUrl("/api/books"),
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -50,7 +51,7 @@ setError("");
     setBooks(booksData.books || []);
 
     const transactionsResponse = await fetch(
-      "http://localhost:5000/api/borrow-transactions",
+      apiUrl("/api/borrow-transactions"),
       {
         headers: {
           Authorization: `Bearer ${token}`,

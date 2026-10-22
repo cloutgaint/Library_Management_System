@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function QRScanner() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,9 +22,9 @@ function QRScanner() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/books/search?query=${encodeURIComponent(
+        apiUrl(`/api/books/search?query=${encodeURIComponent(
           searchTerm.trim()
-        )}`,
+        )}`),
         {
           headers: {
             Authorization: `Bearer ${token}`,

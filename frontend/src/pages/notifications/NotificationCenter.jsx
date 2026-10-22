@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
@@ -17,7 +18,7 @@ function NotificationCenter() {
       setError("");
 
       const response = await fetch(
-        "http://localhost:5000/api/notifications",
+        apiUrl("/api/notifications"),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -58,7 +59,7 @@ function NotificationCenter() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:5000/api/notifications/${id}/read`,
+        apiUrl(`/api/notifications/${id}/read`),
         {
           method: "PUT",
           headers: {

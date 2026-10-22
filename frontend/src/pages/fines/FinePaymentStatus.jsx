@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function FinePaymentStatus() {
   const [payments, setPayments] = useState([]);
@@ -18,8 +19,8 @@ function FinePaymentStatus() {
       setError("");
 
       const endpoint = isMember
-        ? "http://localhost:5000/api/fines/my-fines"
-        : "http://localhost:5000/api/fines";
+        ? apiUrl("/api/fines/my-fines")
+        : apiUrl("/api/fines");
 
       const response = await fetch(endpoint, {
         headers: {
@@ -51,7 +52,7 @@ function FinePaymentStatus() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:5000/api/fines/${fineId}/pay`,
+        apiUrl(`/api/fines/${fineId}/pay`),
         {
           method: "PUT",
           headers: {

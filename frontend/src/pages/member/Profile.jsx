@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import ProfileCard from "../../components/member/ProfileCard";
 import MembershipCard from "../../components/member/MembershipCard";
+import { apiUrl } from "../../lib/api";
 
 function Profile() {
   const [member, setMember] = useState(null);
@@ -13,7 +14,7 @@ function Profile() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:5000/api/members/profile",
+          apiUrl("/api/members/profile"),
           {
             headers: {
               Authorization: `Bearer ${token}`,

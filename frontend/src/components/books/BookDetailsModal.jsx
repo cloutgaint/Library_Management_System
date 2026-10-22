@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function BookDetailsModal({ book, onClose }) {
   const [reviews, setReviews] = useState([]);
@@ -72,7 +73,7 @@ function BookDetailsModal({ book, onClose }) {
       setLoadingReviews(true);
 
       const response = await fetch(
-        `http://localhost:5000/api/reviews/book/${book.id}`,
+        apiUrl(`/api/reviews/book/${book.id}`),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -116,7 +117,7 @@ function BookDetailsModal({ book, onClose }) {
       setReservationError("");
 
       const response = await fetch(
-        "http://localhost:5000/api/reservations",
+        apiUrl("/api/reservations"),
         {
           method: "POST",
           headers: {
@@ -160,7 +161,7 @@ function BookDetailsModal({ book, onClose }) {
       setSubmittingReview(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/reviews",
+        apiUrl("/api/reviews"),
         {
           method: "POST",
           headers: {
@@ -222,7 +223,7 @@ function BookDetailsModal({ book, onClose }) {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/reviews/${reviewId}`,
+        apiUrl(`/api/reviews/${reviewId}`),
         {
           method: "PUT",
           headers: {
@@ -268,7 +269,7 @@ function BookDetailsModal({ book, onClose }) {
       setReviewError("");
 
       const response = await fetch(
-        `http://localhost:5000/api/reviews/${reviewId}`,
+        apiUrl(`/api/reviews/${reviewId}`),
         {
           method: "DELETE",
           headers: {

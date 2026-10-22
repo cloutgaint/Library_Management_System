@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function EbookPage() {
   const [ebooks, setEbooks] = useState([]);
@@ -33,7 +34,7 @@ function EbookPage() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/ebooks",
+        apiUrl("/api/ebooks"),
         {
           method: "GET",
           headers: {
@@ -110,7 +111,7 @@ function EbookPage() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/ebooks",
+        apiUrl("/api/ebooks"),
         {
           method: "POST",
           headers: {
@@ -180,7 +181,7 @@ function EbookPage() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/ebooks/${id}`,
+        apiUrl(`/api/ebooks/${id}`),
         {
           method: "DELETE",
           headers: {

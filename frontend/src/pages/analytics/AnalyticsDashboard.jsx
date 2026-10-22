@@ -12,6 +12,7 @@ Pie,
 Cell,
 Legend,
 } from "recharts";
+import { apiUrl } from "../../lib/api";
 
 function AnalyticsDashboard() {
 const [books, setBooks] = useState([]);
@@ -39,19 +40,19 @@ setError("");
 
     const [booksResponse, membersResponse, transactionsResponse, finesResponse] =
       await Promise.all([
-        fetch("http://localhost:5000/api/books", {
+        fetch(apiUrl("/api/books"), {
           method: "GET",
           headers,
         }),
-        fetch("http://localhost:5000/api/members", {
+        fetch(apiUrl("/api/members"), {
           method: "GET",
           headers,
         }),
-        fetch("http://localhost:5000/api/borrow-transactions", {
+        fetch(apiUrl("/api/borrow-transactions"), {
           method: "GET",
           headers,
         }),
-        fetch("http://localhost:5000/api/fines", {
+        fetch(apiUrl("/api/fines"), {
           method: "GET",
           headers,
         }),

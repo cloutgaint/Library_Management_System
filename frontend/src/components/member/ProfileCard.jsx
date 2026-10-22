@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -13,7 +14,7 @@ function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
   const fileInputRef = useRef(null);
 
   const profileImage = member.profile_image
-    ? `http://localhost:5000${member.profile_image}`
+    ? apiUrl(`${member.profile_image}`)
     : "/default-profile.png";
 
   const handleSave = async () => {
@@ -25,7 +26,7 @@ function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/members/profile",
+        apiUrl("/api/members/profile"),
         {
           method: "PUT",
           headers: {
@@ -83,7 +84,7 @@ function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
       formData.append("profile_image", file);
 
       const response = await fetch(
-        "http://localhost:5000/api/members/profile/image",
+        apiUrl("/api/members/profile/image"),
         {
           method: "PUT",
           headers: {

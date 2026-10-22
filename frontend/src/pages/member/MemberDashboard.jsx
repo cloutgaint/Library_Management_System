@@ -1,6 +1,7 @@
 import {useEffect,useState} from "react";
 import DashboardCard from "../../components/member/DashboardCard";
 import { Link } from "react-router-dom";
+import { apiUrl } from "../../lib/api";
 
 function MemberDashboard() {
   const [history, setHistory] = useState([]);
@@ -13,7 +14,7 @@ function MemberDashboard() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:5000/api/borrow-transactions/my-history",
+          apiUrl("/api/borrow-transactions/my-history"),
           {
             headers: {
               Authorization: `Bearer ${token}`,

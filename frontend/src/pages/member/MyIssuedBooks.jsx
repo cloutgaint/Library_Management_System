@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function MyIssuedBooks() {
   const [issuedBooks, setIssuedBooks] = useState([]);
@@ -11,7 +12,7 @@ function MyIssuedBooks() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:5000/api/borrow-transactions/my-history",
+          apiUrl("/api/borrow-transactions/my-history"),
           {
             headers: {
               Authorization: `Bearer ${token}`,
