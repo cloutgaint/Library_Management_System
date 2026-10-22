@@ -7,6 +7,7 @@ const {
   addReview,
   editReview,
   removeReview,
+  moderate,
 } = require("../controllers/reviewController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -49,5 +50,7 @@ router.delete(
   roleMiddleware("member"),
   removeReview
 );
+
+router.patch("/:id/moderation", authMiddleware, roleMiddleware("admin", "librarian"), moderate);
 
 module.exports = router;

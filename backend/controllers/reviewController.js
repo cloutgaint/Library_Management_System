@@ -4,6 +4,7 @@ const {
   createReview,
   updateReview,
   deleteReview,
+  moderateReview,
 } = require("../models/reviewModel");
 
 // Get reviews for a book
@@ -11,7 +12,9 @@ const getReviews = async (req, res) => {
   try {
     const { bookId } = req.params;
 
-    const reviews = await getBookReviews(bookId);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const reviews = await getBookReviews(bookId, limit, (page - 1) * limit);
 
     res.status(200).json(reviews);
   } catch (error) {
@@ -46,13 +49,13 @@ const addReview = async (req, res) => {
     const { bookId, rating, reviewText } = req.body;
     const userId = req.user.id;
 
-    if (!bookId || !rating) {
+    if (!Number.isSafeInteger(Number(bookId)) || Number(bookId) <= 0 || !Number.isInteger(rating)) {
       return res.status(400).json({
         message: "Book ID and rating are required",
       });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return res.status(400).json({
         message: "Rating must be between 1 and 5",
       });
@@ -72,6 +75,9 @@ const addReview = async (req, res) => {
   } catch (error) {
     console.error("Create Review Error:", error);
 
+    if (error.code === "23503") {
+      return res.status(404).json({ message: "Book not found" });
+    }
     if (error.code === "23505") {
       return res.status(400).json({
         message: "You have already reviewed this book",
@@ -91,7 +97,7 @@ const editReview = async (req, res) => {
     const { rating, reviewText } = req.body;
     const userId = req.user.id;
 
-    if (!rating || rating < 1 || rating > 5) {
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return res.status(400).json({
         message: "Rating must be between 1 and 5",
       });
@@ -138,7 +144,21 @@ const removeReview = async (req, res) => {
   }
 };
 
+const moderate = async (req, res) => {
+  const { status } = req.body;
+  if (!["Approved", "Rejected", "Pending"].includes(status)) {
+    return res.status(400).json({ message: "Invalid moderation status" });
+  }
+  try {
+    return res.json({ review: await moderateReview(req.params.id, status) });
+  } catch (error) {
+    return res.status(error.message === "Review not found" ? 404 : 500)
+      .json({ message: error.message === "Review not found" ? error.message : "Moderation failed" });
+  }
+};
+
 module.exports = {
+  moderate,
   getReviews,
   getRating,
   addReview,
