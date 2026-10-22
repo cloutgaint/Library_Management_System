@@ -21,6 +21,7 @@ ALTER TABLE users
   DROP COLUMN IF EXISTS updated_at,
   DROP COLUMN IF EXISTS created_by,
   DROP COLUMN IF EXISTS password_changed_at,
+  DROP COLUMN IF EXISTS session_version,
   DROP COLUMN IF EXISTS is_active;
 
 COMMIT;

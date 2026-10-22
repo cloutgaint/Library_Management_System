@@ -31,6 +31,8 @@ END $$;
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
   ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ,
+  -- Embedded in each JWT; incrementing it revokes every existing session.
+  ADD COLUMN IF NOT EXISTS session_version INTEGER NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 

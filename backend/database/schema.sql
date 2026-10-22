@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     CHECK (role IN ('admin', 'librarian', 'member')),
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   password_changed_at TIMESTAMPTZ,
+  session_version INTEGER NOT NULL DEFAULT 0,
   created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
