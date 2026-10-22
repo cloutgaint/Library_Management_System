@@ -1,0 +1,127 @@
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS users (
+  id BIGSERIAL PRIMARY KEY,
+  full_name VARCHAR(150) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password TEXT NOT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'member'
+    CHECK (role IN ('admin', 'librarian', 'member')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS books (
+  id BIGSERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  author VARCHAR(255) NOT NULL,
+  isbn VARCHAR(32) NOT NULL UNIQUE,
+  category VARCHAR(100) NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'Available',
+  description TEXT NOT NULL DEFAULT '',
+  image TEXT NOT NULL DEFAULT '',
+  total_copies INTEGER NOT NULL DEFAULT 1 CHECK (total_copies >= 0),
+  available_copies INTEGER NOT NULL DEFAULT 1
+    CHECK (available_copies >= 0 AND available_copies <= total_copies),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS members (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  phone VARCHAR(30) NOT NULL DEFAULT '',
+  address TEXT NOT NULL DEFAULT '',
+  membership_start DATE NOT NULL DEFAULT CURRENT_DATE,
+  membership_expiry DATE NOT NULL,
+  membership_status VARCHAR(20) NOT NULL DEFAULT 'Active'
+    CHECK (membership_status IN ('Active', 'Expired', 'Suspended')),
+  profile_image TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS borrow_transactions (
+  id BIGSERIAL PRIMARY KEY,
+  member_id BIGINT NOT NULL REFERENCES members(id) ON DELETE RESTRICT,
+  book_id BIGINT NOT NULL REFERENCES books(id) ON DELETE RESTRICT,
+  issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  due_date DATE NOT NULL,
+  return_date DATE,
+  transaction_status VARCHAR(20) NOT NULL DEFAULT 'Issued'
+    CHECK (transaction_status IN ('Issued', 'Returned')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (due_date >= issue_date),
+  CHECK (return_date IS NULL OR return_date >= issue_date)
+);
+
+CREATE TABLE IF NOT EXISTS reservations (
+  id BIGSERIAL PRIMARY KEY,
+  member_id BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  book_id BIGINT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  reservation_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  queue_position INTEGER CHECK (queue_position IS NULL OR queue_position > 0),
+  status VARCHAR(20) NOT NULL DEFAULT 'Waiting'
+    CHECK (status IN ('Waiting', 'Ready', 'Cancelled', 'Completed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS reservations_active_member_book_idx
+  ON reservations (member_id, book_id)
+  WHERE status IN ('Waiting', 'Ready');
+
+CREATE INDEX IF NOT EXISTS reservations_book_queue_idx
+  ON reservations (book_id, queue_position)
+  WHERE status = 'Waiting';
+
+CREATE TABLE IF NOT EXISTS fines (
+  id BIGSERIAL PRIMARY KEY,
+  transaction_id BIGINT NOT NULL UNIQUE
+    REFERENCES borrow_transactions(id) ON DELETE CASCADE,
+  member_id BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  fine_amount NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (fine_amount >= 0),
+  payment_status VARCHAR(20) NOT NULL DEFAULT 'Unpaid'
+    CHECK (payment_status IN ('Unpaid', 'Paid')),
+  payment_date TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(100) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS notifications_user_created_idx
+  ON notifications (user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS ebooks (
+  id BIGSERIAL PRIMARY KEY,
+  book_id BIGINT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  author VARCHAR(255) NOT NULL,
+  file_url TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id BIGSERIAL PRIMARY KEY,
+  book_id BIGINT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  review_text TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (book_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS borrow_transactions_member_idx
+  ON borrow_transactions (member_id, issue_date DESC);
+
+CREATE INDEX IF NOT EXISTS borrow_transactions_status_idx
+  ON borrow_transactions (transaction_status);
+
+CREATE INDEX IF NOT EXISTS reviews_book_created_idx
+  ON reviews (book_id, created_at DESC);
+
+COMMIT;
