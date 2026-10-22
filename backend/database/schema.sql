@@ -7,8 +7,20 @@ CREATE TABLE IF NOT EXISTS users (
   password TEXT NOT NULL,
   role VARCHAR(20) NOT NULL DEFAULT 'member'
     CHECK (role IN ('admin', 'librarian', 'member')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  password_changed_at TIMESTAMPTZ,
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT users_admin_always_active CHECK (role <> 'admin' OR is_active)
 );
+
+-- Exactly one primary admin per installation.
+CREATE UNIQUE INDEX IF NOT EXISTS users_single_admin_uq
+  ON users ((role)) WHERE role = 'admin';
+
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_uq
+  ON users (LOWER(email));
 
 CREATE TABLE IF NOT EXISTS books (
   id BIGSERIAL PRIMARY KEY,
@@ -130,10 +142,44 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
   token_hash CHAR(64) NOT NULL UNIQUE,
   expires_at TIMESTAMPTZ NOT NULL,
   used_at TIMESTAMPTZ,
+  purpose VARCHAR(20) NOT NULL DEFAULT 'reset'
+    CONSTRAINT password_reset_tokens_purpose_chk CHECK (purpose IN ('reset', 'invite')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS password_reset_tokens_user_idx
   ON password_reset_tokens (user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS library_branches (
+  id BIGSERIAL PRIMARY KEY,
+  code VARCHAR(32) NOT NULL UNIQUE,
+  name VARCHAR(160) NOT NULL,
+  address TEXT NOT NULL DEFAULT '',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS librarian_branch_assignments (
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  branch_id BIGINT NOT NULL REFERENCES library_branches(id) ON DELETE RESTRICT,
+  assigned_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, branch_id)
+);
+
+CREATE INDEX IF NOT EXISTS librarian_branch_assignments_branch_idx
+  ON librarian_branch_assignments (branch_id);
+
+CREATE TABLE IF NOT EXISTS user_account_audit (
+  id BIGSERIAL PRIMARY KEY,
+  target_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  actor_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  action VARCHAR(40) NOT NULL,
+  details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS user_account_audit_target_idx
+  ON user_account_audit (target_user_id, created_at DESC);
 
 COMMIT;
