@@ -10,11 +10,11 @@ const {
 
 const register = async (req, res) => {
   try {
-    const { full_name, email, password, role } = req.body;
+    const { full_name, email, password } = req.body;
 
-    const selectedRole = role || "member";
+    const selectedRole = "member";
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     let user;
 
@@ -36,7 +36,7 @@ const register = async (req, res) => {
 
     res.status(201).json({
       message: "User Registered Successfully",
-      user,
+      user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role },
     });
   } catch (error) {
     console.error("Registration Error:", error);
@@ -97,32 +97,12 @@ const login = async (req, res) => {
   }
 };
 
-const forgotPassword = async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-
-    const user = await findUserByEmail(email);
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await updatePassword(email, hashedPassword);
-
-    res.status(200).json({
-      message: "Password Updated Successfully",
-    });
-  } catch (error) {
-    console.error("Forgot Password Error:", error);
-
-    res.status(500).json({
-      message: "Failed to Update Password",
-    });
-  }
+// Password recovery must never change credentials without proof of email ownership.
+// A token-based email reset flow will replace this temporary fail-closed handler.
+const forgotPassword = async (_req, res) => {
+  return res.status(503).json({
+    message: "Password recovery is temporarily unavailable while secure email verification is being implemented.",
+  });
 };
 
 module.exports = {
