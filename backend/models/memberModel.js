@@ -70,7 +70,7 @@ const createMember = async (
     user_id,
     phone,
     address,
-    membership_start,
+    membership_start || new Date().toISOString().slice(0, 10),
     membership_expiry,
   ];
 
