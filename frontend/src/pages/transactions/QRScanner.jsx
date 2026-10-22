@@ -22,14 +22,14 @@ function QRScanner() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        apiUrl(`/api/books/search?query=${encodeURIComponent(
-          searchTerm.trim()
-        )}`),
+        apiUrl(
+          `/api/books/search?query=${encodeURIComponent(searchTerm.trim())}`,
+        ),
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -56,30 +56,22 @@ function QRScanner() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-700 to-indigo-600 text-white shadow-lg">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-
-          <h1 className="text-3xl sm:text-4xl font-bold">
-            📷 QR Code Scanner
-          </h1>
+          <h1 className="text-3xl sm:text-4xl font-bold">📷 QR Code Scanner</h1>
 
           <p className="text-blue-100 mt-2 text-sm sm:text-base">
             Scan a book QR code to quickly access book information.
           </p>
-
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
           {/* Scanner */}
           <section className="bg-white rounded-2xl shadow-lg p-5 sm:p-8">
-
             <h2 className="text-2xl font-bold text-gray-800">
               Scan Book QR Code
             </h2>
@@ -90,12 +82,8 @@ function QRScanner() {
 
             {/* Camera Area */}
             <div className="mt-6 border-4 border-dashed border-blue-300 rounded-2xl h-64 sm:h-80 flex items-center justify-center bg-gray-50">
-
               <div className="text-center px-4">
-
-                <div className="text-6xl sm:text-7xl">
-                  📷
-                </div>
+                <div className="text-6xl sm:text-7xl">📷</div>
 
                 <p className="text-gray-600 font-semibold mt-4">
                   Camera Preview
@@ -104,9 +92,7 @@ function QRScanner() {
                 <p className="text-gray-400 text-sm mt-1">
                   QR scanning will be connected during integration.
                 </p>
-
               </div>
-
             </div>
 
             <button
@@ -117,12 +103,10 @@ function QRScanner() {
             >
               📷 Start Scanning
             </button>
-
           </section>
 
           {/* Manual Search */}
           <section className="bg-white rounded-2xl shadow-lg p-5 sm:p-8">
-
             <h2 className="text-2xl font-bold text-gray-800">
               Search Book Manually
             </h2>
@@ -132,7 +116,6 @@ function QRScanner() {
             </p>
 
             <div className="mt-6">
-
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Book ID / ISBN
               </label>
@@ -149,7 +132,6 @@ function QRScanner() {
                 placeholder="Enter Book ID or ISBN"
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-
             </div>
 
             <button
@@ -170,13 +152,11 @@ function QRScanner() {
             {/* Book Result */}
             {book && (
               <div className="mt-6 bg-green-50 border border-green-200 rounded-xl p-5">
-
                 <h3 className="text-lg font-bold text-green-800 mb-3">
                   Book Found
                 </h3>
 
                 <div className="space-y-2 text-sm text-gray-700">
-
                   <p>
                     <span className="font-semibold">Title:</span>{" "}
                     {book.title || "N/A"}
@@ -201,47 +181,39 @@ function QRScanner() {
                     <span className="font-semibold">Status:</span>{" "}
                     {book.status || "N/A"}
                   </p>
-
                 </div>
-
               </div>
             )}
 
             {/* Information */}
             <div className="mt-8 bg-blue-50 rounded-xl p-5">
-
-              <h3 className="font-bold text-blue-800">
-                How it works
-              </h3>
+              <h3 className="font-bold text-blue-800">How it works</h3>
 
               <div className="mt-4 space-y-3 text-sm text-gray-600">
-
                 <p>
-                  <span className="font-semibold">1.</span> Start the QR scanner.
+                  <span className="font-semibold">1.</span> Start the QR
+                  scanner.
                 </p>
 
                 <p>
-                  <span className="font-semibold">2.</span> Point the camera at the book QR code.
+                  <span className="font-semibold">2.</span> Point the camera at
+                  the book QR code.
                 </p>
 
                 <p>
-                  <span className="font-semibold">3.</span> If scanning is unavailable, search using Book ID or ISBN.
+                  <span className="font-semibold">3.</span> If scanning is
+                  unavailable, search using Book ID or ISBN.
                 </p>
 
                 <p>
-                  <span className="font-semibold">4.</span> Book information will be displayed.
+                  <span className="font-semibold">4.</span> Book information
+                  will be displayed.
                 </p>
-
               </div>
-
             </div>
-
           </section>
-
         </div>
-
       </main>
-
     </div>
   );
 }
