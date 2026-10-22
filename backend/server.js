@@ -20,8 +20,12 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const recommendationRoutes = require("./routes/recommendationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
-app.use(cors());
-app.use(express.json());
+const roleDashboardRoutes = require("./routes/roleDashboardRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
+const origins=(process.env.CORS_ORIGINS||"http://localhost:5173,http://127.0.0.1:5173").split(",").map(x=>x.trim()).filter(Boolean);
+app.use(cors({origin:(origin,cb)=>cb(null,!origin||origins.includes(origin)),credentials:false}));
+app.use(securityHeaders);
+app.use(express.json({limit:"1mb"}));
 app.use("/uploads", express.static("uploads"));
 
 // Authentication routes
@@ -48,6 +52,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/dashboard-overview", roleDashboardRoutes);
+app.use("/api/settings", settingsRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

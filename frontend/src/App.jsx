@@ -27,6 +27,7 @@ import AnalyticsDashboard from "./pages/analytics/AnalyticsDashboard";
 import Reports from "./pages/reports/Reports";
 import Charts from "./pages/analytics/Charts";
 import EbookPage from "./pages/ebooks/EbookPage";
+import LibrarySettings from "./pages/settings/LibrarySettings";
 
 
 function App() {
@@ -100,6 +101,7 @@ element={<BookCatalog />}
 
 
 <Route path="/ebooks" element={<EbookPage />} />
+<Route path="/library-settings" element={<ProtectedRoute roles={["admin"]}><LibrarySettings /></ProtectedRoute>} />
 
 
 
