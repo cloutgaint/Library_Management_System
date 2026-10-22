@@ -25,6 +25,10 @@ import AnalyticsDashboard from "./pages/analytics/AnalyticsDashboard";
 import Reports from "./pages/reports/Reports";
 import Charts from "./pages/analytics/Charts";
 import EbookPage from "./pages/ebooks/EbookPage";
+import BranchInventory from "./pages/inventory/BranchInventory";
+import TransferManagement from "./pages/inventory/TransferManagement";
+import Periodicals from "./pages/inventory/Periodicals";
+import CopyConditions from "./pages/inventory/CopyConditions";
 
 
 function App() {
@@ -97,6 +101,10 @@ element={<BookCatalog />}
 
 
 <Route path="/ebooks" element={<EbookPage />} />
+<Route path="/branch-inventory" element={<BranchInventory />} />
+<Route path="/branch-transfers" element={<TransferManagement />} />
+<Route path="/periodicals" element={<Periodicals />} />
+<Route path="/copy-conditions" element={<CopyConditions />} />
 
 
 
