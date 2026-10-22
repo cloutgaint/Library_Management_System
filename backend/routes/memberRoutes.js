@@ -12,6 +12,7 @@ const {
   removeMember,
   getMyProfile,
   checkMembershipExpiry,
+  changeMembershipStatus,
 } = require("../controllers/memberController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
@@ -67,6 +68,13 @@ router.put(
   authMiddleware,
   roleMiddleware("admin"),
   editMember
+);
+
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  roleMiddleware("admin"),
+  changeMembershipStatus
 );
 
 router.delete(
