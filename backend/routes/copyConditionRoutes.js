@@ -5,6 +5,7 @@ const model=require("../models/copyConditionModel");
 router.use(auth,role("admin","librarian"));
 router.get("/",async(req,res)=>{try{res.json(await model.list());}catch(e){res.status(500).json({message:"Unable to load condition events"});}});
 router.post("/",async(req,res)=>{
+ if(process.env.LMS_PHASE7_INVENTORY_ENABLED!=="true")return res.status(503).json({message:"Inventory writes disabled until reconciliation"});
  const {copyId,condition,note}=req.body;
  if(!Number.isSafeInteger(Number(copyId))||!["Good","Worn","Damaged","Lost","Repair"].includes(condition))
   return res.status(400).json({message:"Valid copy and condition required"});
