@@ -93,7 +93,7 @@ const updateMember = async (
       address = $2,
       membership_start = $3,
       membership_expiry = $4,
-      membership_status = $5
+      membership_status = COALESCE($5, membership_status)
     WHERE id = $6
     RETURNING *;
   `;
