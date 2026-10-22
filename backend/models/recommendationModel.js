@@ -24,6 +24,7 @@ const getRecommendations = async (userId) => {
         ON bt.member_id = m.id
       WHERE m.user_id = $1
     )
+    AND b.available_copies > 0
     AND b.id NOT IN (
       SELECT bt2.book_id
       FROM borrow_transactions bt2
