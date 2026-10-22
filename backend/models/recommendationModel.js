@@ -31,12 +31,24 @@ const getRecommendations = async (userId) => {
         ON bt2.member_id = m2.id
       WHERE m2.user_id = $1
     )
-    ORDER BY b.created_at DESC;
+    ORDER BY b.available_copies DESC, b.created_at DESC
+    LIMIT 20;
   `;
 
   const result = await pool.query(query, [userId]);
 
-  return result.rows;
+  if (result.rows.length) return result.rows;
+  const popular = await pool.query(`
+    SELECT b.id, b.title, b.author, b.isbn, b.category, b.status,
+           b.description, b.image, b.total_copies, b.available_copies
+    FROM books b
+    LEFT JOIN reviews r ON r.book_id = b.id
+    WHERE b.available_copies > 0
+    GROUP BY b.id
+    ORDER BY COALESCE(AVG(r.rating), 0) DESC, COUNT(r.id) DESC, b.created_at DESC
+    LIMIT 20
+  `);
+  return popular.rows;
 };
 
 module.exports = {
