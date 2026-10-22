@@ -5,6 +5,7 @@ import AuthCard from "../../components/ui/AuthCard";
 import InputField from "../../components/ui/InputField";
 import PasswordField from "../../components/ui/PasswordField";
 import Button from "../../components/ui/Button";
+import { apiRequest } from "../../lib/api";
 
 function Register() {
   const navigate = useNavigate();
@@ -51,8 +52,13 @@ function Register() {
     if (password === "") {
       setPasswordError("Password is required");
       valid = false;
-    } else if (password.length < 10) {
-      setPasswordError("Password must be at least 10 characters");
+    } else if (password.length < 10 || password.length > 128) {
+      setPasswordError("Password must be between 10 and 128 characters");
+      valid = false;
+    } else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      setPasswordError(
+        "Password must contain at least one letter and one number",
+      );
       valid = false;
     }
 
@@ -71,43 +77,38 @@ function Register() {
 
     if (!valid) return;
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const response = await fetch(
-        "http://localhost:5000/api/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            full_name: name,
-            email: email,
-            password: password,
-          }),
-        }
-      );
+    // Public registration always creates a Member account; no role is sent.
+    const { ok, status, data } = await apiRequest("/api/auth/register", {
+      method: "POST",
+      body: {
+        full_name: name.trim(),
+        email: email.trim(),
+        password,
+        confirm_password: confirmPassword,
+      },
+    });
 
-      const data = await response.json();
+    setLoading(false);
 
-      if (!response.ok) {
+    if (!ok) {
+      const fieldErrors = data.errors || {};
+
+      if (fieldErrors.full_name) setNameError(fieldErrors.full_name);
+      if (fieldErrors.email) setEmailError(fieldErrors.email);
+      if (fieldErrors.password) setPasswordError(fieldErrors.password);
+      if (fieldErrors.confirm_password)
+        setConfirmError(fieldErrors.confirm_password);
+
+      if (!Object.keys(fieldErrors).length || status === 0) {
         setRegisterError(data.message || "Registration failed");
-        return;
       }
 
-      alert("Registration Successful!");
-
-      navigate("/");
-    } catch (error) {
-      console.error("Registration Error:", error);
-
-      setRegisterError(
-        "Unable to connect to server. Please make sure the backend is running."
-      );
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    navigate("/", { replace: true, state: { registered: true } });
   };
 
   return (
@@ -116,7 +117,7 @@ function Register() {
         title="Library Management System"
         subtitle="Create your account"
       >
-        <form onSubmit={handleRegister}>
+        <form onSubmit={handleRegister} noValidate>
           <InputField
             label="Full Name"
             placeholder="Enter your full name"
@@ -140,7 +141,11 @@ function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={passwordError}
+            autoComplete="new-password"
           />
+          <p className="-mt-3 mb-5 text-xs text-gray-500">
+            At least 10 characters, including a letter and a number.
+          </p>
 
           <PasswordField
             label="Confirm Password"
@@ -148,6 +153,7 @@ function Register() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={confirmError}
+            autoComplete="new-password"
           />
 
           <div className="mb-5">
@@ -161,14 +167,12 @@ function Register() {
             </label>
 
             {termsError && (
-              <p className="text-red-500 text-sm mt-2">
-                {termsError}
-              </p>
+              <p className="text-red-500 text-sm mt-2">{termsError}</p>
             )}
           </div>
 
           {registerError && (
-            <p className="text-red-600 text-sm mb-4">
+            <p role="alert" className="text-red-600 text-sm mb-4">
               {registerError}
             </p>
           )}
@@ -176,12 +180,12 @@ function Register() {
           <Button
             text={loading ? "Creating Account..." : "Create Account"}
             type="submit"
+            disabled={loading}
           />
 
           <div className="text-center mt-6">
             <p className="text-gray-600">
               Already have an account?
-
               <Link
                 to="/"
                 className="ml-2 text-blue-600 font-semibold hover:underline"

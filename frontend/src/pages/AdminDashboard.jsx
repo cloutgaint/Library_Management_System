@@ -1,8 +1,11 @@
 import Phase8StaffOverview from "../components/Phase8StaffOverview";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
+import { apiUrl } from "../lib/api";
 
 function AdminDashboard() {
+  const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [stats, setStats] = useState({
@@ -41,15 +44,15 @@ function AdminDashboard() {
           transactionsResponse,
           notificationsResponse,
         ] = await Promise.all([
-          fetch("http://localhost:5000/api/books", {
+          fetch(apiUrl("/api/books"), {
             method: "GET",
             headers,
           }),
-          fetch("http://localhost:5000/api/borrow-transactions", {
+          fetch(apiUrl("/api/borrow-transactions"), {
             method: "GET",
             headers,
           }),
-          fetch("http://localhost:5000/api/notifications", {
+          fetch(apiUrl("/api/notifications"), {
             method: "GET",
             headers,
           }),
@@ -406,6 +409,15 @@ function AdminDashboard() {
           </Link>
 
           <Link
+            to="/admin/users"
+            onClick={closeSidebar}
+            className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-slate-800 hover:text-white"
+          >
+            <span>👥</span>
+            <span>User Management</span>
+          </Link>
+
+          <Link
             to="/books"
             onClick={closeSidebar}
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 transition hover:bg-slate-800 hover:text-white"
@@ -508,6 +520,16 @@ function AdminDashboard() {
             <span>📑</span>
             <span>Reports</span>
           </Link>
+
+          <div className="my-5 border-t border-slate-800" />
+
+          <button
+            type="button"
+            onClick={logout}
+            className="block w-full rounded-xl px-4 py-3 text-left font-semibold text-red-400 transition hover:bg-red-950"
+          >
+            🚪 Logout
+          </button>
         </nav>
 
         <div className="mt-8 pb-2">

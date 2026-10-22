@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
+import { apiUrl } from "../lib/api";
 
 function MemberDashboard() {
+  const { logout } = useAuth();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const token = localStorage.getItem("token");
 
@@ -78,7 +81,7 @@ function MemberDashboard() {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/recommendations",
+          apiUrl("/api/recommendations"),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -180,6 +183,14 @@ function MemberDashboard() {
                 <p className="text-sm font-semibold">{memberName}</p>
                 <p className="text-xs text-blue-100">Member</p>
               </div>
+
+              <button
+                type="button"
+                onClick={logout}
+                className="ml-2 rounded-lg bg-white/20 px-3 py-2 text-sm font-semibold transition hover:bg-white/30"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
