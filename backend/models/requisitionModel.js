@@ -1,13 +1,37 @@
 const pool = require("../config/db");
 
 const createRequisition = async (userId, { title, author, isbn, reason }) => {
-  const result = await pool.query(`
-    INSERT INTO book_requisitions (member_id, title, author, isbn, reason)
-    SELECT m.id, $2, $3, $4, $5 FROM members m WHERE m.user_id = $1
-    RETURNING *
-  `, [userId, title, author, isbn || null, reason || ""]);
-  if (!result.rows.length) throw new Error("Member profile not found");
-  return result.rows[0];
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const member = await client.query(
+      "SELECT id FROM members WHERE user_id = $1 FOR UPDATE", [userId]
+    );
+    if (!member.rows.length) throw new Error("Member profile not found");
+    const duplicate = await client.query(`
+      SELECT id FROM book_requisitions
+      WHERE member_id = $1 AND status IN ('Pending', 'Approved', 'Ordered')
+        AND (LOWER(title) = LOWER($2) OR ($3::text IS NOT NULL AND isbn = $3))
+      LIMIT 1
+    `, [member.rows[0].id, title, isbn || null]);
+    if (duplicate.rows.length) throw new Error("Active requisition already exists");
+    const result = await client.query(`
+      INSERT INTO book_requisitions (member_id, title, author, isbn, reason)
+      VALUES ($1, $2, $3, $4, $5) RETURNING *
+    `, [member.rows[0].id, title, author, isbn || null, reason || ""]);
+    await client.query(`
+      INSERT INTO book_requisition_history
+        (requisition_id, previous_status, new_status, changed_by, note)
+      VALUES ($1, NULL, 'Pending', $2, 'Submitted')
+    `, [result.rows[0].id, userId]);
+    await client.query("COMMIT");
+    return result.rows[0];
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 };
 
 const listMyRequisitions = async (userId) => {
