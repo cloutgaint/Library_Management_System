@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/Forgotpassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import LibrarianDashboard from "./pages/LibrarianDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -35,6 +36,7 @@ function App() {
     <Routes>
 
       <Route path="/" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route path="/register" element={<Register />} />
       

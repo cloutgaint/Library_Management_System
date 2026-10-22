@@ -9,9 +9,11 @@ const {
   register,
   login,
   forgotPassword,
+  confirmPasswordReset,
 } = require("../controllers/authController");router.post("/register",loginLimiter,register);
 router.post("/login",loginLimiter,login);
 router.post("/forgot-password",loginLimiter,forgotPassword);
+router.post("/reset-password",loginLimiter,confirmPasswordReset);
 router.get("/test", authMiddleware, (req, res) => {
   res.status(200).json({
     message: "Authentication successful",
