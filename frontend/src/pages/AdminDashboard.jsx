@@ -459,6 +459,7 @@ function AdminDashboard() {
             <span>QR Scanner</span>
           </Link>
 
+          <Link to="/requisition-management" onClick={closeSidebar} className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white">📋 Book Requisitions</Link>
           <Link
             to="/reservation-queue"
             onClick={closeSidebar}
