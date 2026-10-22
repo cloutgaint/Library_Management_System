@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import DashboardCard from "../../components/member/DashboardCard";
+import { Link } from "react-router-dom";
 
 function MemberDashboard() {
   const [history, setHistory] = useState([]);
@@ -74,6 +75,10 @@ function MemberDashboard() {
 
       </div>
 
+      <nav className="mx-auto flex max-w-7xl flex-wrap gap-3 px-8 pt-6">
+        <Link className="rounded bg-white px-4 py-2 shadow" to="/recommendations">Recommended Books</Link>
+        <Link className="rounded bg-white px-4 py-2 shadow" to="/my-requisitions">My Book Requisitions</Link>
+      </nav>
       {/* Dashboard */}
       <div className="max-w-7xl mx-auto px-8 py-10">
 
