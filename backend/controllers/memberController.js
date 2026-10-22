@@ -11,6 +11,7 @@ const {
 } = require("../models/memberModel");
 
 const { createNotification } = require("../models/notificationModel");
+const pool = require("../config/db");
 
 const getMembers = async (req, res) => {
   try {
@@ -290,7 +291,58 @@ const checkMembershipExpiry = async (req, res) => {
   }
 };
 
+
+// Status transitions are audited when the Phase 3 migration has been applied.
+const changeMembershipStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status, reason } = req.body || {};
+  if (!["Active", "Suspended"].includes(status)) {
+    return res.status(400).json({ message: "Status must be Active or Suspended" });
+  }
+  if (status === "Suspended" && (!reason || !String(reason).trim())) {
+    return res.status(400).json({ message: "Suspension reason is required" });
+  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query(
+      "SELECT id, membership_status, membership_expiry FROM members WHERE id = $1 FOR UPDATE",
+      [id]
+    );
+    if (!existing.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Member not found" });
+    }
+    if (status === "Active" && existing.rows[0].membership_expiry < new Date()) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ message: "Renew expired membership before reactivation" });
+    }
+    const updated = await client.query(
+      `UPDATE members SET membership_status = $1,
+       suspended_at = CASE WHEN $1 = 'Suspended' THEN NOW() ELSE NULL END,
+       suspension_reason = CASE WHEN $1 = 'Suspended' THEN $2 ELSE NULL END
+       WHERE id = $3 RETURNING *`,
+      [status, status === "Suspended" ? String(reason).trim() : null, id]
+    );
+    await client.query(
+      `INSERT INTO membership_status_history
+       (member_id, previous_status, new_status, reason, changed_by_user_id)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, existing.rows[0].membership_status, status, reason || null, req.user.id]
+    );
+    await client.query("COMMIT");
+    return res.status(200).json({ message: "Membership status updated", member: updated.rows[0] });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Membership status update error:", error);
+    return res.status(500).json({ message: "Failed to update membership status; ensure Phase 3 migration is applied" });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
+  changeMembershipStatus,
   getMembers,
   getMember,
   addMember,
