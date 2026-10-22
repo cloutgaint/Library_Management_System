@@ -16,8 +16,9 @@ const create = async (req, res) => {
     });
     return res.status(201).json(item);
   } catch (error) {
-    return res.status(error.message === "Member profile not found" ? 404 : 500)
-      .json({ message: error.message === "Member profile not found" ? error.message : "Unable to create requisition" });
+    const known = { "Member profile not found": 404, "Active requisition already exists": 409 };
+    const code = known[error.message] || 500;
+    return res.status(code).json({ message: code === 500 ? "Unable to create requisition" : error.message });
   }
 };
 
