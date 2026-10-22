@@ -15,6 +15,7 @@ const register = async (req, res) => {
     if (role && role !== "member") return res.status(403).json({message:"Only member self-registration is allowed"});
     const selectedRole = "member";
 
+    if (typeof full_name !== "string" || !full_name.trim() || typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email) || typeof password !== "string" || password.length < 10 || password.length > 128) return res.status(400).json({message:"Invalid registration details"});
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let user;
@@ -37,7 +38,7 @@ const register = async (req, res) => {
 
     res.status(201).json({
       message: "User Registered Successfully",
-      user,
+      user: {id:user.id,full_name:user.full_name,email:user.email,role:user.role},
     });
   } catch (error) {
     console.error("Registration Error:", error);
@@ -98,34 +99,7 @@ const login = async (req, res) => {
   }
 };
 
-const forgotPassword = async (req, res) => {
-  try {
-    return res.status(503).json({message:"Password recovery is unavailable until verified reset links are configured"});
-    /* const { email, newPassword } = req.body;
-
-    const user = await findUserByEmail(email);
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await updatePassword(email, hashedPassword);
-
-    res.status(200).json({
-      message: "Password Updated Successfully",
-    }); */
-  } catch (error) {
-    console.error("Forgot Password Error:", error);
-
-    res.status(500).json({
-      message: "Failed to Update Password",
-    });
-  }
-};
+const forgotPassword = async (_req,res) => res.status(503).json({message:"Password recovery is temporarily unavailable. Contact a library administrator."});
 
 module.exports = {
   register,
