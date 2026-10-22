@@ -110,7 +110,17 @@ const deleteReview = async (reviewId, userId) => {
   return result.rows[0];
 };
 
+const moderateReview = async (reviewId, status) => {
+  const result = await pool.query(
+    "UPDATE reviews SET moderation_status = $2, updated_at = NOW() WHERE id = $1 RETURNING *",
+    [reviewId, status]
+  );
+  if (!result.rows.length) throw new Error("Review not found");
+  return result.rows[0];
+};
+
 module.exports = {
+  moderateReview,
   getBookReviews,
   getBookRating,
   createReview,
