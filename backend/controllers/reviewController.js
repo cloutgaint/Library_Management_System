@@ -4,6 +4,7 @@ const {
   createReview,
   updateReview,
   deleteReview,
+  moderateReview,
 } = require("../models/reviewModel");
 
 // Get reviews for a book
@@ -143,7 +144,21 @@ const removeReview = async (req, res) => {
   }
 };
 
+const moderate = async (req, res) => {
+  const { status } = req.body;
+  if (!["Approved", "Rejected", "Pending"].includes(status)) {
+    return res.status(400).json({ message: "Invalid moderation status" });
+  }
+  try {
+    return res.json({ review: await moderateReview(req.params.id, status) });
+  } catch (error) {
+    return res.status(error.message === "Review not found" ? 404 : 500)
+      .json({ message: error.message === "Review not found" ? error.message : "Moderation failed" });
+  }
+};
+
 module.exports = {
+  moderate,
   getReviews,
   getRating,
   addReview,
