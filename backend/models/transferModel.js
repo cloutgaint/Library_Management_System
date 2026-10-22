@@ -31,7 +31,8 @@ const transition=async(id,status,userId,note)=>{
   if(status==="Dispatched"){
    if(copy.rows[0].circulation_status!=="Available" || !["Good","Worn"].includes(copy.rows[0].condition)) throw new Error("Copy unavailable");
    await client.query("UPDATE book_copies SET circulation_status='InTransit' WHERE id=$1",[before.copy_id]);
-   await client.query("UPDATE books SET available_copies=available_copies-1 WHERE id=$1 AND available_copies>0",[copy.rows[0].book_id]);
+   const adjusted=await client.query("UPDATE books SET available_copies=available_copies-1 WHERE id=$1 AND available_copies>0 RETURNING id",[copy.rows[0].book_id]);
+   if(!adjusted.rows.length)throw new Error("Inventory reconciliation required");
   }
   if(status==="Received"){
    if(copy.rows[0].circulation_status!=="InTransit") throw new Error("Copy not in transit");
