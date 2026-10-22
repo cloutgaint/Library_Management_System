@@ -122,7 +122,7 @@ const editMember = async (req, res) => {
       address || "",
       membership_start || null,
       membership_expiry,
-      membership_status || "Active"
+      membership_status
     );
 
     if (!member) {
