@@ -46,13 +46,13 @@ const addReview = async (req, res) => {
     const { bookId, rating, reviewText } = req.body;
     const userId = req.user.id;
 
-    if (!bookId || !rating) {
+    if (!Number.isSafeInteger(Number(bookId)) || Number(bookId) <= 0 || !Number.isInteger(rating)) {
       return res.status(400).json({
         message: "Book ID and rating are required",
       });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return res.status(400).json({
         message: "Rating must be between 1 and 5",
       });
@@ -91,7 +91,7 @@ const editReview = async (req, res) => {
     const { rating, reviewText } = req.body;
     const userId = req.user.id;
 
-    if (!rating || rating < 1 || rating > 5) {
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return res.status(400).json({
         message: "Rating must be between 1 and 5",
       });
