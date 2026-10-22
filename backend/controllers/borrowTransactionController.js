@@ -142,6 +142,12 @@ const issueBookController = async (req, res) => {
   } catch (error) {
     console.error("Issue Book Error:", error);
 
+    if (error.message === "Membership is not active") {
+      return res.status(403).json({ message: "Membership is expired or suspended" });
+    }
+    if (error.message === "Member not found") {
+      return res.status(404).json({ message: "Member not found" });
+    }
     if (error.message === "Book not found") {
       return res.status(404).json({
         message: "Book not found",
