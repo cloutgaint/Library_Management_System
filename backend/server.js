@@ -13,6 +13,7 @@ const fineRoutes = require("./routes/fineRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
+const {securityHeaders}=require("./middleware/securityMiddleware");
 const qrRoutes = require("./routes/qrRoutes");
 const ebookRoutes = require("./routes/ebookRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
@@ -21,8 +22,10 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const roleDashboardRoutes = require("./routes/roleDashboardRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
-app.use(cors());
-app.use(express.json());
+const origins=(process.env.CORS_ORIGINS||"http://localhost:5173,http://127.0.0.1:5173").split(",").map(x=>x.trim()).filter(Boolean);
+app.use(cors({origin:(origin,cb)=>cb(null,!origin||origins.includes(origin)),credentials:false}));
+app.use(securityHeaders);
+app.use(express.json({limit:"1mb"}));
 app.use("/uploads", express.static("uploads"));
 
 // Authentication routes
