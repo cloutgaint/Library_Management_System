@@ -1,3 +1,4 @@
+import Phase8StaffOverview from "../components/Phase8StaffOverview";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -328,6 +329,7 @@ export default function LibrarianDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
+<Phase8StaffOverview />
       <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-lg">
         <div className="flex items-center justify-between px-5 py-4 sm:px-6">
           <div>

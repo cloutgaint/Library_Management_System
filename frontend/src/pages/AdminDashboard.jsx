@@ -1,3 +1,4 @@
+import Phase8StaffOverview from "../components/Phase8StaffOverview";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -284,6 +285,7 @@ function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+<Phase8StaffOverview />
       <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-lg">
         <div className="px-3 py-3 sm:px-6 sm:py-5 lg:px-8">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
