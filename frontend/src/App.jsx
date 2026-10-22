@@ -25,6 +25,8 @@ import AnalyticsDashboard from "./pages/analytics/AnalyticsDashboard";
 import Reports from "./pages/reports/Reports";
 import Charts from "./pages/analytics/Charts";
 import EbookPage from "./pages/ebooks/EbookPage";
+import MyRequisitions from "./pages/member/MyRequisitions";
+import RequisitionManagement from "./pages/RequisitionManagement";
 
 
 function App() {
@@ -97,6 +99,8 @@ element={<BookCatalog />}
 
 
 <Route path="/ebooks" element={<EbookPage />} />
+<Route path="/my-requisitions" element={<MyRequisitions />} />
+<Route path="/requisition-management" element={<RequisitionManagement />} />
 
 
 
