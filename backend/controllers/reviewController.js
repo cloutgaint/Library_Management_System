@@ -11,7 +11,9 @@ const getReviews = async (req, res) => {
   try {
     const { bookId } = req.params;
 
-    const reviews = await getBookReviews(bookId);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const reviews = await getBookReviews(bookId, limit, (page - 1) * limit);
 
     res.status(200).json(reviews);
   } catch (error) {
@@ -72,6 +74,9 @@ const addReview = async (req, res) => {
   } catch (error) {
     console.error("Create Review Error:", error);
 
+    if (error.code === "23503") {
+      return res.status(404).json({ message: "Book not found" });
+    }
     if (error.code === "23505") {
       return res.status(400).json({
         message: "You have already reviewed this book",
