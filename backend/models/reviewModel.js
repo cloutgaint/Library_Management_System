@@ -1,7 +1,7 @@
 const pool = require("../config/db");
 
 // Get all reviews for a book
-const getBookReviews = async (bookId) => {
+const getBookReviews = async (bookId, limit = 20, offset = 0) => {
   const query = `
     SELECT
       reviews.id,
@@ -10,15 +10,16 @@ const getBookReviews = async (bookId) => {
       users.full_name,
       reviews.rating,
       reviews.review_text,
-      reviews.created_at
+      reviews.created_at,
+      EXISTS (SELECT 1 FROM borrow_transactions bt JOIN members m ON m.id = bt.member_id WHERE m.user_id = reviews.user_id AND bt.book_id = reviews.book_id) AS verified_borrower
     FROM reviews
     JOIN users
       ON reviews.user_id = users.id
-    WHERE reviews.book_id = $1
-    ORDER BY reviews.created_at DESC;
+    WHERE reviews.book_id = $1 AND reviews.moderation_status = 'Approved'
+    ORDER BY reviews.created_at DESC, reviews.id DESC LIMIT $2 OFFSET $3;
   `;
 
-  const result = await pool.query(query, [bookId]);
+  const result = await pool.query(query, [bookId, limit, offset]);
 
   return result.rows;
 };
@@ -30,7 +31,7 @@ const getBookRating = async (bookId) => {
       COUNT(*) AS review_count,
       COALESCE(ROUND(AVG(rating), 1), 0) AS average_rating
     FROM reviews
-    WHERE book_id = $1;
+    WHERE book_id = $1 AND moderation_status = 'Approved';
   `;
 
   const result = await pool.query(query, [bookId]);
@@ -69,7 +70,9 @@ const updateReview = async (reviewId, userId, rating, reviewText) => {
     UPDATE reviews
     SET
       rating = $1,
-      review_text = $2
+      review_text = $2,
+      updated_at = NOW(),
+      moderation_status = 'Approved'
     WHERE id = $3
       AND user_id = $4
     RETURNING *;
