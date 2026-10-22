@@ -12,7 +12,8 @@ const register = async (req, res) => {
   try {
     const { full_name, email, password, role } = req.body;
 
-    const selectedRole = role || "member";
+    if (role && role !== "member") return res.status(403).json({message:"Only member self-registration is allowed"});
+    const selectedRole = "member";
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -99,7 +100,8 @@ const login = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
+    return res.status(503).json({message:"Password recovery is unavailable until verified reset links are configured"});
+    /* const { email, newPassword } = req.body;
 
     const user = await findUserByEmail(email);
 
@@ -115,7 +117,7 @@ const forgotPassword = async (req, res) => {
 
     res.status(200).json({
       message: "Password Updated Successfully",
-    });
+    }); */
   } catch (error) {
     console.error("Forgot Password Error:", error);
 
