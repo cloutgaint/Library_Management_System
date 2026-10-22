@@ -66,7 +66,7 @@ const readNotification = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const notification = await markNotificationAsRead(id);
+    const notification = await markNotificationAsRead(id, req.user.id);
 
     res.status(200).json({
       message: "Notification marked as read",

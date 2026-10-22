@@ -45,15 +45,15 @@ const createNotification = async (
 };
 
 // Mark notification as read
-const markNotificationAsRead = async (notificationId) => {
+const markNotificationAsRead = async (notificationId, userId) => {
   const query = `
     UPDATE notifications
     SET is_read = TRUE
-    WHERE id = $1
+    WHERE id = $1 AND user_id = $2
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [notificationId]);
+  const result = await pool.query(query, [notificationId, userId]);
 
   if (result.rows.length === 0) {
     throw new Error("Notification not found");
