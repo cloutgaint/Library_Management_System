@@ -452,7 +452,13 @@ export default function LibrarianDashboard() {
                 📚 E-Books
               </Link>
 
-              <Link
+              <div className="flex flex-wrap gap-2 px-4 py-3 text-xs">
+<Link className="rounded bg-slate-800 px-2 py-2 text-white" to="/branch-inventory">Branch Inventory</Link>
+<Link className="rounded bg-slate-800 px-2 py-2 text-white" to="/branch-transfers">Transfers</Link>
+<Link className="rounded bg-slate-800 px-2 py-2 text-white" to="/periodicals">Periodicals</Link>
+<Link className="rounded bg-slate-800 px-2 py-2 text-white" to="/copy-conditions">Lost / Damaged</Link>
+</div>
+<Link
                 to="/reservation-queue"
                 onClick={closeSidebar}
                 className="block rounded-xl px-4 py-3 text-slate-300 transition hover:bg-slate-800 hover:text-white"
