@@ -61,6 +61,18 @@ const issueBook = async (memberId, bookId, dueDate) => {
   try {
     await client.query("BEGIN");
 
+    const memberResult = await client.query(
+      `SELECT id, membership_status, membership_expiry
+       FROM members WHERE id = $1 FOR UPDATE;`,
+      [memberId]
+    );
+    if (!memberResult.rows.length) throw new Error("Member not found");
+    const member = memberResult.rows[0];
+    if (member.membership_status !== "Active" ||
+        String(member.membership_expiry).slice(0, 10) < new Date().toISOString().slice(0, 10)) {
+      throw new Error("Membership is not active");
+    }
+
     const bookResult = await client.query(
       `
       SELECT id, title, available_copies
