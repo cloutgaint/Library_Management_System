@@ -61,6 +61,24 @@ const issueBook = async (memberId, bookId, dueDate) => {
   try {
     await client.query("BEGIN");
 
+    const eligibility = await client.query(
+      `SELECT membership_status, membership_expiry >= CURRENT_DATE AS current
+       FROM members WHERE id = $1 FOR UPDATE`, [memberId]
+    );
+    if (!eligibility.rows.length) throw new Error("Member not found");
+    if (eligibility.rows[0].membership_status !== "Active" || !eligibility.rows[0].current) {
+      throw new Error("Membership is not active");
+    }
+    const policy = await client.query("SELECT max_active_loans FROM circulation_policy WHERE id = 1");
+    const maxLoans = policy.rows[0]?.max_active_loans ?? 5;
+    const active = await client.query(
+      "SELECT COUNT(*)::integer AS count FROM borrow_transactions WHERE member_id = $1 AND transaction_status = 'Issued'",
+      [memberId]
+    );
+    if (active.rows[0].count >= maxLoans) throw new Error("Borrowing limit reached");
+    const validDueDate = await client.query("SELECT $1::date > CURRENT_DATE AS valid", [dueDate]);
+    if (!validDueDate.rows[0].valid) throw new Error("Due date must be in the future");
+
     const bookResult = await client.query(
       `
       SELECT id, title, available_copies
@@ -189,9 +207,12 @@ const returnBook = async (transactionId) => {
 const renewBook = async (transactionId, newDueDate) => {
   const query = `
     UPDATE borrow_transactions
-    SET due_date = $1
+    SET due_date = $1, renewal_count = renewal_count + 1
     WHERE id = $2
       AND transaction_status = 'Issued'
+      AND renewal_count < (SELECT max_renewals FROM circulation_policy WHERE id = 1)
+      AND $1::date > GREATEST(CURRENT_DATE, due_date)
+      AND NOT EXISTS (SELECT 1 FROM reservations r WHERE r.book_id = borrow_transactions.book_id AND r.status IN ('Waiting','Ready') AND r.member_id <> borrow_transactions.member_id)
     RETURNING *;
   `;
 
