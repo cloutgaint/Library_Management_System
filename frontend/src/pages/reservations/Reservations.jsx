@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function Reservation() {
   const [books, setBooks] = useState([]);
@@ -18,7 +19,7 @@ function Reservation() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/books",
+        apiUrl("/api/books"),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,7 +49,7 @@ function Reservation() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/reservations/my-reservations",
+        apiUrl("/api/reservations/my-reservations"),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -95,7 +96,7 @@ function Reservation() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/reservations",
+        apiUrl("/api/reservations"),
         {
           method: "POST",
           headers: {
@@ -146,7 +147,7 @@ function Reservation() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/reservations/${reservationId}`,
+        apiUrl(`/api/reservations/${reservationId}`),
         {
           method: "DELETE",
           headers: {

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
-function ProfileCard({ member, onProfileImageChange }) {
+function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(member.full_name || "");
   const [phone, setPhone] = useState(member.phone || "");
@@ -13,7 +14,7 @@ function ProfileCard({ member, onProfileImageChange }) {
   const fileInputRef = useRef(null);
 
   const profileImage = member.profile_image
-    ? `http://localhost:5000${member.profile_image}`
+    ? apiUrl(`${member.profile_image}`)
     : "/default-profile.png";
 
   const handleSave = async () => {
@@ -25,7 +26,7 @@ function ProfileCard({ member, onProfileImageChange }) {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/members/profile",
+        apiUrl("/api/members/profile"),
         {
           method: "PUT",
           headers: {
@@ -46,9 +47,11 @@ function ProfileCard({ member, onProfileImageChange }) {
         throw new Error(data.message || "Failed to update profile");
       }
 
-      member.full_name = data.member.full_name;
-      member.phone = data.member.phone;
-      member.address = data.member.address;
+      onProfileUpdate?.({
+        full_name: data.member.full_name,
+        phone: data.member.phone,
+        address: data.member.address,
+      });
 
       setFullName(data.member.full_name || "");
       setPhone(data.member.phone || "");
@@ -81,7 +84,7 @@ function ProfileCard({ member, onProfileImageChange }) {
       formData.append("profile_image", file);
 
       const response = await fetch(
-        "http://localhost:5000/api/members/profile/image",
+        apiUrl("/api/members/profile/image"),
         {
           method: "PUT",
           headers: {

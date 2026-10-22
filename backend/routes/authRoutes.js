@@ -1,4 +1,3 @@
-
 const roleMiddleware = require("../middleware/roleMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
 const express = require("express");
@@ -8,12 +7,16 @@ const router = express.Router();
 const {
   register,
   login,
+  me,
   forgotPassword,
   confirmPasswordReset,
-} = require("../controllers/authController");router.post("/register",loginLimiter,register);
+} = require("../controllers/authController");
+
+router.post("/register",loginLimiter,register);
 router.post("/login",loginLimiter,login);
 router.post("/forgot-password",loginLimiter,forgotPassword);
 router.post("/reset-password",loginLimiter,confirmPasswordReset);
+router.get("/me", authMiddleware, me);
 router.get("/test", authMiddleware, (req, res) => {
   res.status(200).json({
     message: "Authentication successful",

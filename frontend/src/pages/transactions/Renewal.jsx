@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function RenewBook() {
   const [search, setSearch] = useState("");
@@ -17,7 +18,7 @@ function RenewBook() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:5000/api/borrow-transactions",
+          apiUrl("/api/borrow-transactions"),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -100,7 +101,7 @@ function RenewBook() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/borrow-transactions/renew",
+        apiUrl("/api/borrow-transactions/renew"),
         {
           method: "PUT",
           headers: {

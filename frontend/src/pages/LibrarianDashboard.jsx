@@ -1,8 +1,8 @@
 import Phase8StaffOverview from "../components/Phase8StaffOverview";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-const API_BASE_URL = "http://localhost:5000";
+import { useAuth } from "../auth/authContext";
+import { API_BASE_URL } from "../lib/api";
 
 function getToken() {
   return localStorage.getItem("token");
@@ -106,6 +106,7 @@ function isActiveTransaction(transaction) {
 }
 
 export default function LibrarianDashboard() {
+  const { logout } = useAuth();
   const [stats, setStats] = useState({
     todayIssues: 0,
     todayReturns: 0,
@@ -479,13 +480,13 @@ export default function LibrarianDashboard() {
 
               <div className="my-5 border-t border-slate-800" />
 
-              <Link
-                to="/"
-                onClick={closeSidebar}
-                className="block rounded-xl px-4 py-3 font-semibold text-red-400 transition hover:bg-red-950"
+              <button
+                type="button"
+                onClick={logout}
+                className="block w-full rounded-xl px-4 py-3 text-left font-semibold text-red-400 transition hover:bg-red-950"
               >
                 🚪 Logout
-              </Link>
+              </button>
             </nav>
 
             <div className="border-t border-slate-800 p-4">

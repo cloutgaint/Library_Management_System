@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import AuthCard from "../../components/ui/AuthCard";
 
@@ -10,16 +10,22 @@ import PasswordField from "../../components/ui/PasswordField";
 
 import Button from "../../components/ui/Button";
 
+import { useAuth } from "../../auth/authContext";
+
+import { dashboardPathForRole, postLoginPath } from "../../auth/roles";
+
+// One login page for every role. The role is decided by the server from the
+// account record, never chosen by the user.
 function Login() {
   const navigate = useNavigate();
+
+  const location = useLocation();
+
+  const { status, user, login, notice, clearNotice } = useAuth();
 
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
-
-  const [role, setRole] = useState("admin");
-
-  const [rememberMe, setRememberMe] = useState(false);
 
   const [emailError, setEmailError] = useState("");
 
@@ -29,6 +35,11 @@ function Login() {
 
   const [loading, setLoading] = useState(false);
 
+  // Already signed in (for example after a browser refresh): go to the verified dashboard.
+  if (status === "authenticated" && !loading) {
+    return <Navigate to={dashboardPathForRole(user.role)} replace />;
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -37,6 +48,8 @@ function Login() {
     setPasswordError("");
 
     setLoginError("");
+
+    clearNotice();
 
     let valid = true;
 
@@ -48,68 +61,26 @@ function Login() {
       valid = false;
     }
 
-    if (password.trim() === "") {
+    if (password === "") {
       setPasswordError("Password is required");
-      valid = false;
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
       valid = false;
     }
 
     if (!valid) return;
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const response = await fetch(
-        "http://localhost:5000/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-        }
-      );
+    const result = await login(email.trim(), password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setLoginError(data.message || "Login failed");
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      if (rememberMe) {
-        localStorage.setItem("rememberMe", "true");
-      } else {
-        localStorage.removeItem("rememberMe");
-      }
-
-      if (data.user.role === "admin") {
-        navigate("/admin");
-      } else if (data.user.role === "librarian") {
-        navigate("/librarian");
-      } else if (data.user.role === "member") {
-        navigate("/student");
-      } else {
-        setLoginError("Unknown user role");
-      }
-    } catch (error) {
-      console.error("Login Error:", error);
-
-      setLoginError(
-        "Unable to connect to server. Please make sure the backend is running."
-      );
-    } finally {
+    if (!result.ok) {
       setLoading(false);
+      setLoginError(result.message);
+      return;
     }
+
+    navigate(postLoginPath(result.user.role, location.state?.from), {
+      replace: true,
+    });
   };
 
   return (
@@ -118,7 +89,25 @@ function Login() {
         title="📚 Library Management System"
         subtitle="Welcome Back! Sign in to continue"
       >
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} noValidate>
+          {location.state?.registered && !notice && !loginError && (
+            <p
+              role="status"
+              className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800"
+            >
+              Registration successful. Log in with your new account.
+            </p>
+          )}
+
+          {notice && (
+            <p
+              role="status"
+              className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800"
+            >
+              {notice}
+            </p>
+          )}
+
           <InputField
             label="Email"
             type="email"
@@ -126,6 +115,7 @@ function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={emailError}
+            autoComplete="username"
           />
 
           <PasswordField
@@ -136,39 +126,13 @@ function Login() {
             error={passwordError}
           />
 
-          <div className="mb-5">
-            <label className="mb-2 block font-medium text-gray-700">
-              Login As
-            </label>
-
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="admin">Admin</option>
-              <option value="librarian">Librarian</option>
-              <option value="member">Member</option>
-            </select>
-          </div>
-
           {loginError && (
-            <p className="mb-4 text-sm text-red-600">
+            <p role="alert" className="mb-4 text-sm text-red-600">
               {loginError}
             </p>
           )}
 
-          <div className="mb-6 flex items-center justify-between">
-            <label className="flex items-center gap-2 text-sm text-gray-600">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-
-              Remember Me
-            </label>
-
+          <div className="mb-6 flex items-center justify-end">
             <Link
               to="/forgot-password"
               className="text-sm text-blue-600 hover:underline"
@@ -180,12 +144,12 @@ function Login() {
           <Button
             text={loading ? "Logging in..." : "Login"}
             type="submit"
+            disabled={loading}
           />
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?
-
               <Link
                 to="/register"
                 className="ml-2 font-semibold text-blue-600 hover:underline"

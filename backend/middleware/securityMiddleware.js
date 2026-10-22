@@ -1,11 +1,13 @@
 const buckets=new Map();
+// Attempts allowed per IP per 15 minutes across register/login/password recovery.
+const authAttemptLimit=Number(process.env.AUTH_RATE_LIMIT_MAX)||30;
 const loginLimiter=(req,res,next)=>{
  const now=Date.now(),key=req.ip||req.socket.remoteAddress||"unknown";
  const prior=buckets.get(key);
  const state=!prior||now-prior.start>15*60*1000?{start:now,count:0}:prior;
  state.count++;buckets.set(key,state);
  if(buckets.size>10000){for(const [k,v] of buckets){if(now-v.start>15*60*1000)buckets.delete(k);}}
- if(state.count>30){res.setHeader("Retry-After",String(Math.ceil((15*60*1000-(now-state.start))/1000)));return res.status(429).json({message:"Too many authentication attempts. Try again later."});}
+ if(state.count>authAttemptLimit){res.setHeader("Retry-After",String(Math.ceil((15*60*1000-(now-state.start))/1000)));return res.status(429).json({message:"Too many authentication attempts. Try again later."});}
  next();
 };
 const securityHeaders=(_req,res,next)=>{

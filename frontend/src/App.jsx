@@ -1,5 +1,5 @@
 import ProtectedRoute from "./components/ProtectedRoute";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -30,101 +30,53 @@ import EbookPage from "./pages/ebooks/EbookPage";
 import MyRequisitions from "./pages/member/MyRequisitions";
 import Recommendations from "./pages/member/Recommendations";
 import RequisitionManagement from "./pages/RequisitionManagement";
+import UserManagement from "./pages/admin/UserManagement";
 
+
+const STAFF = ["admin", "librarian"];
+const MEMBER = ["member"];
+
+// Route guards are for navigation only; the backend authorises every request.
+const guard = (element, roles) => <ProtectedRoute roles={roles}>{element}</ProtectedRoute>;
 
 function App() {
- 
   return (
     <Routes>
-
       <Route path="/" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route path="/register" element={<Register />} />
-      
+      <Route path="/admin" element={guard(<AdminDashboard />, ["admin"])} />
+      <Route path="/admin/users" element={guard(<UserManagement />, ["admin"])} />
+      <Route path="/librarian" element={guard(<LibrarianDashboard />, ["librarian"])} />
+      <Route path="/student" element={guard(<StudentDashboard />, MEMBER)} />
+      <Route path="/member-dashboard" element={guard(<MemberDashboard />, MEMBER)} />
 
-      <Route
-        path="/forgot-password"
-        element={<ForgotPassword />}
-      />
-      <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/books" element={guard(<BookCatalog />)} />
+      <Route path="/ebooks" element={guard(<EbookPage />)} />
+      <Route path="/notifications" element={guard(<NotificationCenter />)} />
 
-<Route path="/librarian" element={<ProtectedRoute roles={["librarian"]}><LibrarianDashboard /></ProtectedRoute>} />
+      <Route path="/profile" element={guard(<Profile />, MEMBER)} />
+      <Route path="/reading-history" element={guard(<ReadingHistory />, MEMBER)} />
+      <Route path="/my-issued-books" element={guard(<MyIssuedBooks />, MEMBER)} />
+      <Route path="/reservations" element={guard(<Reservation />, MEMBER)} />
+      <Route path="/my-requisitions" element={guard(<MyRequisitions />, MEMBER)} />
+      <Route path="/recommendations" element={guard(<Recommendations />, MEMBER)} />
+      <Route path="/fine-payment-status" element={guard(<FinePaymentStatus />)} />
 
-<Route path="/student" element={<ProtectedRoute roles={["member"]}><StudentDashboard /></ProtectedRoute>} />
-<Route
-path="/books"
-element={<BookCatalog />}
-/>
-<Route path="/member-dashboard" element={<ProtectedRoute roles={["member"]}><MemberDashboard /></ProtectedRoute>} />
-<Route path="/profile" element={<Profile />} />
-<Route
-  path="/reading-history"
-  element={<ReadingHistory />}
-/>
-<Route
-  path="/my-issued-books"
-  element={<MyIssuedBooks />}
-/>
+      <Route path="/issue-book" element={guard(<IssueBook />, STAFF)} />
+      <Route path="/return-book" element={guard(<ReturnBook />, STAFF)} />
+      <Route path="/renew-book" element={guard(<Renewal />, STAFF)} />
+      <Route path="/qr-scanner" element={guard(<QRScanner />, STAFF)} />
+      <Route path="/reservation-queue" element={guard(<ReservationQueue />, STAFF)} />
+      <Route path="/fines" element={guard(<FineManagement />, STAFF)} />
+      <Route path="/analytics" element={guard(<AnalyticsDashboard />, STAFF)} />
+      <Route path="/reports" element={guard(<Reports />, STAFF)} />
+      <Route path="/charts" element={guard(<Charts />, STAFF)} />
+      <Route path="/requisition-management" element={guard(<RequisitionManagement />, STAFF)} />
 
-<Route path="/issue-book" element={<ProtectedRoute roles={["admin","librarian"]}><IssueBook /></ProtectedRoute>} />
-
-<Route path="/return-book" element={<ProtectedRoute roles={["admin","librarian"]}><ReturnBook /></ProtectedRoute>} />
-<Route path="/renew-book" element={<ProtectedRoute roles={["admin","librarian"]}><Renewal /></ProtectedRoute>} />
-<Route path="/qr-scanner" element={<ProtectedRoute roles={["admin","librarian"]}><QRScanner /></ProtectedRoute>} />
-
-<Route path="/reservations" element={<Reservation />} />
-<Route
-  path="/reservation-queue"
-  element={<ProtectedRoute roles={["admin","librarian"]}><ReservationQueue /></ProtectedRoute>}
-/>
-<Route path="/fines" element={<ProtectedRoute roles={["admin","librarian"]}><FineManagement /></ProtectedRoute>} />
-<Route
-  path="/fine-payment-status"
-  element={<FinePaymentStatus />}
-/>
-<Route
-  path="/notifications"
-  element={<NotificationCenter />}
-/>
-
-<Route
-  path="/analytics"
-  element={<ProtectedRoute roles={["admin","librarian"]}><AnalyticsDashboard /></ProtectedRoute>}
-/>
-<Route
-  path="/reports"
-  element={<ProtectedRoute roles={["admin","librarian"]}><Reports /></ProtectedRoute>}
-/>
-<Route
-  path="/charts"
-  element={<ProtectedRoute roles={["admin","librarian"]}><Charts /></ProtectedRoute>}
-/>
-
-
-<Route path="/ebooks" element={<EbookPage />} />
-<Route path="/my-requisitions" element={<MyRequisitions />} />
-<Route path="/recommendations" element={<Recommendations />} />
-<Route path="/requisition-management" element={<RequisitionManagement />} />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

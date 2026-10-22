@@ -5,6 +5,7 @@ import SearchBar from "../../components/books/SearchBar";
 import FilterSection from "../../components/books/FilterSection";
 import Pagination from "../../components/books/Pagination";
 import BookDetailsModal from "../../components/books/BookDetailsModal";
+import { apiUrl } from "../../lib/api";
 
 function BookCatalog() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -50,7 +51,7 @@ function BookCatalog() {
 
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/books", {
+      const response = await fetch(apiUrl("/api/books"), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -238,8 +239,8 @@ function BookCatalog() {
       }
 
       const url = editingBook
-        ? `http://localhost:5000/api/books/${editingBook.id}`
-        : "http://localhost:5000/api/books";
+        ? apiUrl(`/api/books/${editingBook.id}`)
+        : apiUrl("/api/books");
 
       const method = editingBook ? "PUT" : "POST";
 
@@ -298,7 +299,7 @@ function BookCatalog() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/books/${book.id}`,
+        apiUrl(`/api/books/${book.id}`),
         {
           method: "DELETE",
           headers: {

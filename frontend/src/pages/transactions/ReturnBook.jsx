@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function ReturnBook() {
   const [search, setSearch] = useState("");
@@ -16,7 +17,7 @@ function ReturnBook() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:5000/api/borrow-transactions",
+          apiUrl("/api/borrow-transactions"),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -70,7 +71,7 @@ function ReturnBook() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/borrow-transactions/return",
+        apiUrl("/api/borrow-transactions/return"),
         {
           method: "POST",
           headers: {

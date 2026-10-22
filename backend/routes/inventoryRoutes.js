@@ -4,6 +4,7 @@ const auth=require("../middleware/authMiddleware");
 const roles=require("../middleware/roleMiddleware");
 const inventory=require("../models/inventoryModel");
 const transfers=require("../models/transferModel");
+const {requireBranchAccess,branchFromBody}=require("../middleware/branchAccessMiddleware");
 router.use(auth);
 const staff=roles("admin","librarian");
 const requireReconciled=(req,res,next)=>{
@@ -16,13 +17,13 @@ const run=fn=>async(req,res)=>{try{const result=await fn(req);res.json(result);}
  .json({message:e.code==="23505"?"Duplicate record":e.message});
 }};
 router.get("/branches",run(()=>inventory.listBranches()));
-router.post("/branches",staff,run(req=>{
+router.post("/branches",roles("admin"),run(req=>{
  const {code,name,address}=req.body;
  if(!code?.trim()||!name?.trim())throw new Error("Branch code and name required");
  return inventory.addBranch({code:code.trim(),name:name.trim(),address});
 }));
 router.get("/copies",run(req=>inventory.listInventory(req.query.branchId)));
-router.post("/copies",staff,requireReconciled,run(req=>{
+router.post("/copies",staff,requireBranchAccess(branchFromBody("branchId")),requireReconciled,run(req=>{
  const {bookId,branchId,barcode,shelfLocation}=req.body;
  if(!Number.isSafeInteger(Number(bookId))||!Number.isSafeInteger(Number(branchId))||!barcode?.trim())throw new Error("Valid book, branch and barcode required");
  return inventory.addCopy({bookId,branchId,barcode:barcode.trim(),shelfLocation});

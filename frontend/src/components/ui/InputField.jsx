@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 function InputField({
   label,
   type = "text",
@@ -5,15 +7,21 @@ function InputField({
   value,
   onChange,
   error,
+  autoComplete,
 }) {
+  const id = useId();
+
   return (
     <div className="mb-5">
-      <label className="block mb-2 font-medium text-gray-700">
+      <label htmlFor={id} className="block mb-2 font-medium text-gray-700">
         {label}
       </label>
 
       <input
+        id={id}
         type={type}
+        autoComplete={autoComplete}
+        aria-invalid={Boolean(error)}
         placeholder={placeholder}
         value={value}
         onChange={onChange}

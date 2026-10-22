@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 function FineManagement() {
   const [fines, setFines] = useState([]);
@@ -14,7 +15,7 @@ function FineManagement() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/fines", {
+      const response = await fetch(apiUrl("/api/fines"), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -45,7 +46,7 @@ function FineManagement() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:5000/api/fines/${id}/pay`,
+        apiUrl(`/api/fines/${id}/pay`),
         {
           method: "PUT",
           headers: {

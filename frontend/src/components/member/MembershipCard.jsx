@@ -1,3 +1,5 @@
+import { apiUrl } from "../../lib/api";
+
 function MembershipCard({ member }) {
   return (
     <div className="max-w-md mx-auto">
@@ -24,7 +26,7 @@ function MembershipCard({ member }) {
 <img
   src={
     member.profile_image
-      ? `http://localhost:5000${member.profile_image}`
+      ? apiUrl(`${member.profile_image}`)
       : "/default-profile.png"
   }
   alt="Profile"
