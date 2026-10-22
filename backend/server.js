@@ -19,6 +19,9 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const recommendationRoutes = require("./routes/recommendationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const inventoryRoutes = require("./routes/inventoryRoutes");
+const periodicalRoutes = require("./routes/periodicalRoutes");
+const copyConditionRoutes = require("./routes/copyConditionRoutes");
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
@@ -47,6 +50,9 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/periodicals", periodicalRoutes);
+app.use("/api/copy-conditions", copyConditionRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
