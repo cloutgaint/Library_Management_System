@@ -22,21 +22,13 @@ const calculateFine = async (transactionId) => {
 
   const transaction = transactionResult.rows[0];
 
-  const endDate = transaction.return_date
-    ? new Date(transaction.return_date)
-    : new Date();
-
-  const dueDate = new Date(transaction.due_date);
-
-  let overdueDays = Math.ceil(
-    (endDate - dueDate) / (1000 * 60 * 60 * 24)
+  const result = await pool.query(
+    `SELECT GREATEST(0, COALESCE($1::date, CURRENT_DATE) - $2::date)::integer AS overdue_days,
+            COALESCE((SELECT fine_per_day FROM circulation_policy WHERE id = 1), 5.00) AS rate`,
+    [transaction.return_date, transaction.due_date]
   );
-
-  if (overdueDays < 0) {
-    overdueDays = 0;
-  }
-
-  const fineRatePerDay = 5;
+  const overdueDays = result.rows[0].overdue_days;
+  const fineRatePerDay = Number(result.rows[0].rate);
   const fineAmount = overdueDays * fineRatePerDay;
 
   return {
@@ -53,7 +45,7 @@ const createOrUpdateFine = async (transactionId) => {
 
   const existingFine = await pool.query(
     `
-    SELECT id
+    SELECT id, payment_status
     FROM fines
     WHERE transaction_id = $1;
     `,
@@ -61,6 +53,10 @@ const createOrUpdateFine = async (transactionId) => {
   );
 
   if (existingFine.rows.length > 0) {
+    if (existingFine.rows[0].payment_status === "Paid") {
+      const paid = await getFineById(existingFine.rows[0].id);
+      return paid;
+    }
     const result = await pool.query(
       `
       UPDATE fines

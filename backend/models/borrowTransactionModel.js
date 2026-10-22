@@ -61,18 +61,6 @@ const issueBook = async (memberId, bookId, dueDate) => {
   try {
     await client.query("BEGIN");
 
-    const memberResult = await client.query(
-      `SELECT id, membership_status, membership_expiry >= CURRENT_DATE AS is_current
-       FROM members WHERE id = $1 FOR UPDATE;`,
-      [memberId]
-    );
-    if (!memberResult.rows.length) throw new Error("Member not found");
-    const member = memberResult.rows[0];
-    if (member.membership_status !== "Active" ||
-        !member.is_current) {
-      throw new Error("Membership is not active");
-    }
-
     const bookResult = await client.query(
       `
       SELECT id, title, available_copies
@@ -201,9 +189,12 @@ const returnBook = async (transactionId) => {
 const renewBook = async (transactionId, newDueDate) => {
   const query = `
     UPDATE borrow_transactions
-    SET due_date = $1
+    SET due_date = $1, renewal_count = renewal_count + 1
     WHERE id = $2
       AND transaction_status = 'Issued'
+      AND renewal_count < (SELECT max_renewals FROM circulation_policy WHERE id = 1)
+      AND $1::date > GREATEST(CURRENT_DATE, due_date)
+      AND NOT EXISTS (SELECT 1 FROM reservations r WHERE r.book_id = borrow_transactions.book_id AND r.status IN ('Waiting','Ready') AND r.member_id <> borrow_transactions.member_id)
     RETURNING *;
   `;
 

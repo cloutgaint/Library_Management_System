@@ -51,6 +51,7 @@ router.get(
 router.put(
   "/:id/pay",
   authMiddleware,
+  roleMiddleware("admin", "librarian"),
   payFineController
 );
 
