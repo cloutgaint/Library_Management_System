@@ -1,63 +1,65 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
-require("./config/db");
+const app = require("./app");
+const pool = require("./config/db");
 
-const authRoutes = require("./routes/authRoutes");
-const bookRoutes = require("./routes/bookRoutes");
-const memberRoutes = require("./routes/memberRoutes");
-const borrowTransactionRoutes = require("./routes/borrowTransactionRoutes");
-const reservationRoutes = require("./routes/reservationRoutes");
-const fineRoutes = require("./routes/fineRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
+// Objects the authentication system cannot work without (Phase 9 + Phase 10 migrations).
+const REQUIRED_SCHEMA = [
+  ["column", "users", "is_active"],
+  ["column", "users", "password_changed_at"],
+  ["column", "users", "session_version"],
+  ["column", "password_reset_tokens", "purpose"],
+  ["table", "librarian_branch_assignments"],
+  ["table", "user_account_audit"],
+  ["index", "users_single_admin_uq"],
+];
 
-const app = express();
-const {securityHeaders}=require("./middleware/securityMiddleware");
-const qrRoutes = require("./routes/qrRoutes");
-const ebookRoutes = require("./routes/ebookRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
-const recommendationRoutes = require("./routes/recommendationRoutes");
-const requisitionRoutes = require("./routes/requisitionRoutes");
-const dashboardRoutes = require("./routes/dashboardRoutes");
-const reportRoutes = require("./routes/reportRoutes");
-const roleDashboardRoutes = require("./routes/roleDashboardRoutes");
-const settingsRoutes = require("./routes/settingsRoutes");
-const origins=(process.env.CORS_ORIGINS||"http://localhost:5173,http://127.0.0.1:5173").split(",").map(x=>x.trim()).filter(Boolean);
-app.use(cors({origin:(origin,cb)=>cb(null,!origin||origins.includes(origin)),credentials:false}));
-app.use(securityHeaders);
-app.use(express.json({limit:"1mb"}));
-app.use("/uploads", express.static("uploads"));
+const findMissingSchema = async () => {
+  const missing = [];
 
-// Authentication routes
-app.use("/api/auth", authRoutes);
+  for (const [kind, name, column] of REQUIRED_SCHEMA) {
+    const { rowCount } =
+      kind === "column"
+        ? await pool.query(
+            "SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = $1 AND column_name = $2",
+            [name, column]
+          )
+        : kind === "table"
+          ? await pool.query("SELECT to_regclass($1) AS oid WHERE to_regclass($1) IS NOT NULL", [name])
+          : await pool.query("SELECT 1 FROM pg_indexes WHERE schemaname = current_schema() AND indexname = $1", [name]);
 
-// Book routes
-app.use("/api/books", bookRoutes);
+    if (!rowCount) missing.push(column ? `${name}.${column}` : name);
+  }
 
-// Member routes
-app.use("/api/members", memberRoutes);
+  return missing;
+};
 
-// Borrowing transaction routes
-app.use("/api/borrow-transactions", borrowTransactionRoutes);
-app.use("/api/reservations", reservationRoutes);
-app.use("/api/fines", fineRoutes);
-// Home route
-app.get("/", (req, res) => {
-  res.send("🚀 Library Management Backend is Running...");
-});
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/qr", qrRoutes);
-app.use("/api/ebooks", ebookRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/recommendations", recommendationRoutes);
-app.use("/api/requisitions", requisitionRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/reports", reportRoutes);
-app.use("/api/dashboard-overview", roleDashboardRoutes);
-app.use("/api/settings", settingsRoutes);
-const PORT = process.env.PORT || 5000;
+const start = async () => {
+  if (!process.env.JWT_SECRET) {
+    console.error("❌ JWT_SECRET is not set.");
+    process.exit(1);
+  }
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  if (process.env.JWT_SECRET.length < 32) {
+    console.warn("⚠️  JWT_SECRET is shorter than 32 characters; replace it with a long random value.");
+  }
+
+  const missing = await findMissingSchema();
+
+  if (missing.length) {
+    console.error(`❌ Database schema is out of date. Missing: ${missing.join(", ")}`);
+    console.error("   Apply backend/database/migrations/20261022_phase10_auth_roles.sql (see backend/database/PHASE10_AUTH_ROLLOUT.md).");
+    process.exit(1);
+  }
+
+  const PORT = process.env.PORT || 5000;
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+};
+
+start().catch((error) => {
+  console.error("❌ Server failed to start:", error.message);
+  process.exit(1);
 });
