@@ -28,6 +28,8 @@ function BookCatalog() {
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [ebookFile, setEbookFile] = useState(null);
   const [bookType, setBookType] = useState("physical");
+  const [savedBookId, setSavedBookId] = useState(null);
+  const [saveNotice, setSaveNotice] = useState("");
 
   const [bookForm, setBookForm] = useState({
     title: "",
@@ -159,16 +161,19 @@ function BookCatalog() {
     setEditingBook(null);
     setEbookFile(null);
     setBookType("physical");
+    setSavedBookId(null);
     setFormError("");
   };
 
   const openAddBookForm = () => {
     resetBookForm();
+    setSaveNotice("");
     setShowBookForm(true);
   };
 
   const openEditBookForm = (book) => {
     setEditingBook(book);
+    setSavedBookId(null);
     setEbookFile(null);
     setBookType("physical");
 
@@ -246,54 +251,48 @@ function BookCatalog() {
         return;
       }
 
-      const url = editingBook
-        ? apiUrl(`/api/books/${editingBook.id}`)
-        : apiUrl("/api/books");
-
-      const method = editingBook ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: bookForm.title.trim(),
-          author: bookForm.author.trim(),
-          isbn: bookForm.isbn.trim(),
-          category: bookForm.category.trim(),
-          status: bookForm.status,
-          description: bookForm.description.trim(),
-          image: bookForm.image.trim(),
-          total_copies: bookForm.total_copies,
-          available_copies: bookForm.available_copies,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            (editingBook
-              ? "Failed to update book"
-              : "Failed to create book")
-        );
+      // If the book was already saved, retry only the failed file upload.
+      // Reposting the book would cause a duplicate ISBN error.
+      let bookId = savedBookId || editingBook?.id;
+      if (!savedBookId) {
+        const url = editingBook ? apiUrl(`/api/books/${editingBook.id}`) : apiUrl("/api/books");
+        const response = await fetch(url, {
+          method: editingBook ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            title: bookForm.title.trim(), author: bookForm.author.trim(),
+            isbn: bookForm.isbn.trim(), category: bookForm.category.trim(),
+            status: bookForm.status, description: bookForm.description.trim(),
+            image: bookForm.image.trim(), total_copies: bookForm.total_copies,
+            available_copies: bookForm.available_copies,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || (editingBook ? "Failed to update book" : "Failed to create book"));
+        bookId = editingBook?.id || data.book?.id || data.id;
+        if (ebookFile && bookId) {
+          setSavedBookId(bookId);
+        }
       }
-
       if (ebookFile) {
-        const bookId = editingBook?.id || data.book?.id || data.id;
-        if (!bookId) throw new Error("Book saved but the server did not return its ID. Upload the e-book separately.");
+        if (!bookId) throw new Error("Book details were saved, but the server did not return a book ID. Find the book in the catalog and edit it to attach the PDF.");
         const uploadData = new FormData();
         uploadData.append("bookId", String(bookId));
         uploadData.append("ebookFile", ebookFile);
-        const uploadResponse = await fetch(apiUrl("/api/ebooks/upload"), { method: "POST", headers: { Authorization: "Bearer " + token }, body: uploadData });
+        let uploadResponse;
+        try {
+          uploadResponse = await fetch(apiUrl("/api/ebooks/upload"), {
+            method: "POST", headers: { Authorization: `Bearer ${token}` }, body: uploadData,
+          });
+        } catch {
+          throw new Error("Book saved successfully, but PDF upload could not connect. Click Retry PDF Upload; do not add the book again.");
+        }
         if (!uploadResponse.ok) {
           const uploadError = await uploadResponse.json().catch(() => ({}));
-          throw new Error(uploadError.message || "Book saved but file upload failed. Retry by editing the book.");
+          throw new Error("Book saved successfully, but PDF upload failed: " + (uploadError.message || "Server error") + ". Click Retry PDF Upload.");
         }
       }
+      setSaveNotice(ebookFile ? "Book saved and PDF uploaded successfully." : "Book saved successfully.");
       setShowBookForm(false);
       resetBookForm();
 
@@ -453,7 +452,9 @@ function BookCatalog() {
           </div>
         )}
 
-        {/* Search + Add Book */}
+        {saveNotice && <div role="status" className="mb-5 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-800">{saveNotice}</div>}
+
+      {/* Search + Add Book */}
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
           <div className="flex-1">
