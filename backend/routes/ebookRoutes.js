@@ -4,6 +4,7 @@ const multer = require("multer");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const pool = require("../config/db");
 const { getBookById } = require("../models/bookModel");
 const { createEbook, getEbookById, getEbookByBookId } = require("../models/ebookModel");
 const privateDir = path.resolve(__dirname, "../private-ebooks");
@@ -79,6 +80,21 @@ router.post("/upload", authMiddleware, roleMiddleware("admin", "librarian"), (re
 router.get("/:id/read", authMiddleware, async (req, res) => {
   try {
     const ebook = await getEbookById(req.params.id);
+    if (req.user.role === "member") {
+      const access = await pool.query(
+        `SELECT 1 FROM borrow_transactions bt
+         JOIN members m ON m.id = bt.member_id
+         WHERE m.user_id = $1 AND bt.book_id = $2
+           AND bt.transaction_status = 'Issued' AND bt.return_date IS NULL
+         LIMIT 1`,
+        [req.user.id, ebook.book_id]
+      );
+      if (access.rowCount === 0) {
+        return res.status(403).json({ message: "Reading access ended. This book is not currently issued to you." });
+      }
+    } else if (!["admin", "librarian"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Reading access denied." });
+    }
     const match = new RegExp("^private-ebook:([a-f0-9-]{36})[.](pdf|epub)$").exec(ebook.file_url || "");
     if (!match) return res.status(404).json({ message: "No uploaded file available." });
     const filename = match[1] + "." + match[2];
