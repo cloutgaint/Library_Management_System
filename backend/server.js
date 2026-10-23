@@ -12,6 +12,15 @@ const REQUIRED_SCHEMA = [
   ["table", "librarian_branch_assignments"],
   ["table", "user_account_audit"],
   ["index", "users_single_admin_uq"],
+  // Phase 3 membership, Phase 4 circulation, and Phase 5-8 feature foundations.
+  ["column", "members", "membership_number"],
+  ["table", "membership_status_history"],
+  ["column", "borrow_transactions", "renewal_count"],
+  ["table", "circulation_policy"],
+  ["table", "fine_payment_audit"],
+  ["table", "library_branches"],
+  ["table", "book_copies"],
+  ["table", "library_settings"],
 ];
 
 const findMissingSchema = async () => {
@@ -48,7 +57,7 @@ const start = async () => {
 
   if (missing.length) {
     console.error(`❌ Database schema is out of date. Missing: ${missing.join(", ")}`);
-    console.error("   Apply backend/database/migrations/20261022_phase10_auth_roles.sql (see backend/database/PHASE10_AUTH_ROLLOUT.md).");
+    console.error("   Back up the database and review the ordered Phase 2–10 SQL migrations under backend/database/migrations/ before applying them.");
     process.exit(1);
   }
 
