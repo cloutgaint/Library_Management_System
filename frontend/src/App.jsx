@@ -51,8 +51,8 @@ function App() {
       <Route path="/admin" element={guard(<AdminDashboard />, ["admin"], true)} />
       <Route path="/admin/users" element={guard(<UserManagement />, ["admin"])} />
       <Route path="/librarian" element={guard(<LibrarianDashboard />, ["librarian"], true)} />
-      <Route path="/student" element={guard(<StudentDashboard />, MEMBER, true)} />
-      <Route path="/member-dashboard" element={guard(<MemberDashboard />, MEMBER, true)} />
+      <Route path="/student" element={guard(<StudentDashboard />, MEMBER)} />
+      <Route path="/member-dashboard" element={guard(<MemberDashboard />, MEMBER)} />
 
       <Route path="/books" element={guard(<BookCatalog />)} />
       <Route path="/ebooks" element={guard(<EbookPage />)} />
