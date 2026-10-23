@@ -1,6 +1,16 @@
 import { useRef, useState } from "react";
 import { apiUrl } from "../../lib/api";
 
+const readApiResponse = async (response) => {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error("Profile service returned a non-JSON response (HTTP " + response.status + "). Check the /api proxy and backend route.");
+  }
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Profile request failed (HTTP " + response.status + ").");
+  return data;
+};
+
 function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(member.full_name || "");
@@ -41,11 +51,7 @@ function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update profile");
-      }
+      const data = await readApiResponse(response);
 
       onProfileUpdate?.({
         full_name: data.member.full_name,
@@ -73,6 +79,15 @@ function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
       return;
     }
 
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Select a JPG, PNG or WEBP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Profile picture must be 5 MB or smaller.");
+      return;
+    }
+
     try {
       setUploadingImage(true);
       setMessage("");
@@ -94,13 +109,7 @@ function ProfileCard({ member, onProfileImageChange, onProfileUpdate }) {
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to upload profile picture"
-        );
-      }
+      const data = await readApiResponse(response);
 
 onProfileImageChange(data.member.profile_image);
       setMessage("Profile picture updated successfully");
