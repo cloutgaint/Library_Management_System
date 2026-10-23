@@ -4,12 +4,34 @@ const {
   createEbook,
   deleteEbook,
 } = require("../models/ebookModel");
+const pool = require("../config/db");
 
 
 // Get all e-books
 const getEbooks = async (req, res) => {
   try {
-    const ebooks = await getAllEbooks();
+    let ebooks;
+    if (req.user.role === "member") {
+      const result = await pool.query(
+        `SELECT e.id, e.book_id, e.title, e.author, e.created_at, b.isbn,
+                (e.file_url LIKE 'private-ebook:%') AS has_file
+         FROM ebooks e
+         JOIN books b ON b.id = e.book_id
+         WHERE EXISTS (
+           SELECT 1 FROM borrow_transactions bt
+           JOIN members m ON m.id = bt.member_id
+           WHERE m.user_id = $1 AND bt.book_id = e.book_id
+             AND bt.transaction_status = 'Issued' AND bt.return_date IS NULL
+         )
+         ORDER BY e.created_at DESC`,
+        [req.user.id]
+      );
+      ebooks = result.rows;
+    } else if (["admin", "librarian"].includes(req.user.role)) {
+      ebooks = await getAllEbooks();
+    } else {
+      return res.status(403).json({ message: "Access denied." });
+    }
 
     res.status(200).json({
       message: "E-books fetched successfully",
