@@ -26,6 +26,8 @@ function BookCatalog() {
   const [savingBook, setSavingBook] = useState(false);
   const [formError, setFormError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(null);
+  const [ebookFile, setEbookFile] = useState(null);
+  const [bookType, setBookType] = useState("physical");
 
   const [bookForm, setBookForm] = useState({
     title: "",
@@ -155,6 +157,8 @@ function BookCatalog() {
     });
 
     setEditingBook(null);
+    setEbookFile(null);
+    setBookType("physical");
     setFormError("");
   };
 
@@ -165,6 +169,8 @@ function BookCatalog() {
 
   const openEditBookForm = (book) => {
     setEditingBook(book);
+    setEbookFile(null);
+    setBookType("physical");
 
     setBookForm({
       title: book.title || "",
@@ -223,6 +229,8 @@ function BookCatalog() {
         return;
       }
 
+      if (bookType === "digital" && !editingBook && !ebookFile) { setFormError("Upload a PDF or EPUB for this digital book."); return; }
+      if (ebookFile && (!/\.(pdf|epub)$/i.test(ebookFile.name) || ebookFile.size > 25 * 1024 * 1024)) { setFormError("Select a PDF or EPUB smaller than 25 MB."); return; }
       if (bookForm.total_copies < 1) {
         setFormError("Total copies must be at least 1.");
         return;
@@ -274,6 +282,18 @@ function BookCatalog() {
         );
       }
 
+      if (ebookFile) {
+        const bookId = editingBook?.id || data.book?.id || data.id;
+        if (!bookId) throw new Error("Book saved but the server did not return its ID. Upload the e-book separately.");
+        const uploadData = new FormData();
+        uploadData.append("bookId", String(bookId));
+        uploadData.append("ebookFile", ebookFile);
+        const uploadResponse = await fetch(apiUrl("/api/ebooks/upload"), { method: "POST", headers: { Authorization: "Bearer " + token }, body: uploadData });
+        if (!uploadResponse.ok) {
+          const uploadError = await uploadResponse.json().catch(() => ({}));
+          throw new Error(uploadError.message || "Book saved but file upload failed. Retry by editing the book.");
+        }
+      }
       setShowBookForm(false);
       resetBookForm();
 
@@ -617,6 +637,8 @@ function BookCatalog() {
                 </div>
               )}
 
+              {!editingBook && <div><label className="mb-2 block text-sm font-semibold">Book Type *</label><select value={bookType} onChange={e => setBookType(e.target.value)} className="w-full rounded-xl border p-3"><option value="physical">Physical Book</option><option value="digital">E-Book (PDF / EPUB)</option><option value="both">Physical + E-Book</option></select></div>}
+              {(bookType !== "physical" || editingBook) && <div><label htmlFor="ebook-upload" className="mb-2 block text-sm font-semibold">Upload E-Book (PDF / EPUB)</label><input id="ebook-upload" type="file" accept=".pdf,.epub,application/pdf,application/epub+zip" onChange={e => setEbookFile(e.target.files?.[0] || null)} className="w-full rounded-xl border p-3" /><p className="mt-1 text-xs text-slate-500">Maximum 25 MB. Upload only books licensed for digital access.</p></div>}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
                 <div>
