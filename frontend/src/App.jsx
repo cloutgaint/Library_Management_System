@@ -30,7 +30,6 @@ import Charts from "./pages/analytics/Charts";
 import EbookPage from "./pages/ebooks/EbookPage";
 import MyRequisitions from "./pages/member/MyRequisitions";
 import Recommendations from "./pages/member/Recommendations";
-import RequisitionManagement from "./pages/RequisitionManagement";
 import UserManagement from "./pages/admin/UserManagement";
 
 
@@ -75,7 +74,6 @@ function App() {
       <Route path="/analytics" element={guard(<AnalyticsDashboard />, STAFF)} />
       <Route path="/reports" element={guard(<Reports />, STAFF)} />
       <Route path="/charts" element={guard(<Charts />, STAFF)} />
-      <Route path="/requisition-management" element={guard(<RequisitionManagement />, STAFF)} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
