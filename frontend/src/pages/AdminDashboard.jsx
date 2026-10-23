@@ -287,15 +287,14 @@ function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-<Phase8StaffOverview />
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-lg">
+    <div className="min-h-screen bg-slate-50 lg:pl-72">
+      <header className="sticky top-0 z-30 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-lg">
         <div className="px-3 py-3 sm:px-6 sm:py-5 lg:px-8">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex min-w-0 items-center gap-2 sm:gap-4">
               <button
                 onClick={toggleSidebar}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl text-white transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/70 sm:h-11 sm:w-11 sm:text-2xl"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl text-white transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/70 sm:h-11 sm:w-11 sm:text-2xl lg:hidden"
                 aria-label="Toggle navigation menu"
                 title="Menu"
               >
@@ -357,13 +356,13 @@ function AdminDashboard() {
       {sidebarOpen && (
         <div
           onClick={closeSidebar}
-          className="fixed inset-0 z-40 bg-slate-950/50"
+          className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
           aria-hidden="true"
         ></div>
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-[min(18rem,85vw)] transform overflow-y-auto bg-slate-950 p-4 text-white transition-transform duration-300 sm:w-72 sm:p-5 ${
+        className={`fixed left-0 top-0 z-50 h-dvh w-[min(18rem,85vw)] transform overflow-y-auto overscroll-contain bg-slate-950 p-4 text-white transition-transform duration-300 sm:w-72 sm:p-5 lg:translate-x-0 ${
           sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full"
@@ -387,7 +386,7 @@ function AdminDashboard() {
 
           <button
             onClick={closeSidebar}
-            className="ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xl text-slate-400 transition hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xl text-slate-400 transition hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 lg:hidden"
             aria-label="Close navigation menu"
           >
             ✕
@@ -552,7 +551,7 @@ function AdminDashboard() {
         </div>
       </aside>
 
-      <main className="min-w-0">
+      <main className="min-w-0 overflow-x-hidden">
         <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
           <div className="mb-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -646,6 +645,8 @@ function AdminDashboard() {
               </Link>
             ))}
           </div>
+
+          <div className="mt-8 min-w-0"><Phase8StaffOverview /></div>
 
           <section className="mt-8">
             <div className="mb-5">
