@@ -798,6 +798,8 @@ function BookCatalog() {
                 >
                   {savingBook
                     ? "Saving..."
+                    : savedBookId && ebookFile
+                    ? "Retry PDF Upload"
                     : editingBook
                     ? "Update Book"
                     : "Add Book"}
