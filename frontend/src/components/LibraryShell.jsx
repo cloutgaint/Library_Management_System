@@ -1,18 +1,21 @@
+import { LayoutDashboard, Users, BookOpen, BookMarked, BookPlus, BookCheck, BookUp, ScanLine, ClipboardList, CalendarClock, Wallet, Bell, ChartNoAxesCombined, FileText, ChartPie, UserRound, History, LibraryBig, Sparkles, LogOut, GraduationCap, CreditCard, ArrowLeft, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 
+const linkIcons = { "Dashboard": LayoutDashboard, "User Management": Users, "Books": BookOpen, "Book Catalog": BookOpen, "E-Books": BookMarked, "Issue Book": BookPlus, "Return Book": BookCheck, "Renew Book": BookUp, "QR Scanner": ScanLine, "Reservations": CalendarClock, "Reservation Queue": CalendarClock, "Fines": Wallet, "Fine Management": Wallet, "Fine Status": CreditCard, "Notifications": Bell, "Analytics": ChartNoAxesCombined, "Reports": FileText, "Charts": ChartPie, "Student Dashboard": GraduationCap, "My Profile": UserRound, "Issued Books": LibraryBig, "Reading History": History, "Recommendations": Sparkles, "Requisitions": ClipboardList };
+
 const adminLinks = [
   ["Dashboard", "/admin"], ["User Management", "/admin/users"], ["Books", "/books"], ["E-Books", "/ebooks"],
   ["Issue Book", "/issue-book"], ["Return Book", "/return-book"], ["Renew Book", "/renew-book"],
-  ["QR Scanner", "/qr-scanner"], ["Book Requisitions", "/requisition-management"],
+  ["QR Scanner", "/qr-scanner"], 
   ["Reservations", "/reservation-queue"], ["Fines", "/fines"], ["Notifications", "/notifications"],
   ["Analytics", "/analytics"], ["Reports", "/reports"], ["Charts", "/charts"]
 ];
 const librarianLinks = [
   ["Dashboard", "/librarian"], ["Book Catalog", "/books"], ["E-Books", "/ebooks"],
   ["Issue Book", "/issue-book"], ["Return Book", "/return-book"], ["Renew Book", "/renew-book"],
-  ["QR Scanner", "/qr-scanner"], ["Book Requisitions", "/requisition-management"],
+  ["QR Scanner", "/qr-scanner"], 
   ["Reservation Queue", "/reservation-queue"], ["Fine Management", "/fines"],
   ["Notifications", "/notifications"], ["Reports", "/reports"], ["Analytics", "/analytics"]
 ];
@@ -38,20 +41,20 @@ export default function LibraryShell({ children }) {
       {open && <button type="button" aria-label="Close navigation overlay" onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-slate-950/60 lg:hidden" />}
       <aside aria-label="Library navigation" className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-72 flex-col bg-slate-950 text-white shadow-xl transition-transform duration-200 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between border-b border-slate-800 p-5">
-          <div><p className="text-lg font-bold">📚 Library LMS</p><p className="text-xs text-slate-400">{role === "admin" ? "Administration" : role === "librarian" ? "Librarian" : "Member"} Portal</p></div>
-          <button type="button" className="rounded p-2 hover:bg-slate-800 lg:hidden" onClick={() => setOpen(false)} aria-label="Close menu">✕</button>
+          <div><p className="text-lg font-bold"><BookOpen className="mr-2 inline-block h-5 w-5" aria-hidden="true" />Library LMS</p><p className="text-xs text-slate-400">{role === "admin" ? "Administration" : role === "librarian" ? "Librarian" : "Member"} Portal</p></div>
+          <button type="button" className="rounded p-2 hover:bg-slate-800 lg:hidden" onClick={() => setOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button>
         </div>
         <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 py-4">
-          {links.map(([label, url]) => <Link key={url} to={url} onClick={() => setOpen(false)} aria-current={location.pathname === url ? "page" : undefined} className={`block rounded-lg px-4 py-3 text-sm transition hover:bg-slate-800 ${location.pathname === url ? "bg-blue-600 font-semibold text-white" : "text-slate-200"}`}>{label}</Link>)}
+          {links.map(([label, url]) => <Link key={url} to={url} onClick={() => setOpen(false)} aria-current={location.pathname === url ? "page" : undefined} className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition hover:bg-slate-800 ${location.pathname === url ? "bg-blue-600 font-semibold text-white" : "text-slate-200"}`}>{(() => { const Icon = linkIcons[label] || BookOpen; return <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />; })()}<span>{label}</span></Link>)}
         </nav>
         <div className="border-t border-slate-800 p-4">
-          <button type="button" onClick={() => { logout(); navigate("/", { replace: true }); }} className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-300 hover:bg-slate-800">Logout</button>
+          <button type="button" onClick={() => { logout(); navigate("/", { replace: true }); }} className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-300 hover:bg-slate-800"><LogOut className="mr-2 inline-block h-4 w-4" aria-hidden="true" />Logout</button>
         </div>
       </aside>
       <div className="min-w-0">
         <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6">
-          <button type="button" onClick={() => setOpen(true)} className="rounded-lg border border-slate-200 px-3 py-2 lg:hidden" aria-label="Open navigation menu">☰</button>
-          <button type="button" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate(home); }} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-100" aria-label="Go back">← Back</button>
+          <button type="button" onClick={() => setOpen(true)} className="rounded-lg border border-slate-200 px-3 py-2 lg:hidden" aria-label="Open navigation menu"><Menu className="h-5 w-5" /></button>
+          <button type="button" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate(home); }} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-100" aria-label="Go back"><ArrowLeft className="mr-1 inline-block h-4 w-4" />Back</button>
           <span className="min-w-0 truncate font-semibold">{current}</span>
           <Link to={home} className="ml-auto shrink-0 text-sm font-semibold text-blue-700 hover:underline">Dashboard</Link>
         </div>
