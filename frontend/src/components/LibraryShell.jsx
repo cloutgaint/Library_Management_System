@@ -22,7 +22,7 @@ const librarianLinks = [
 const memberLinks = [
   ["Dashboard", "/member-dashboard"], ["Student Dashboard", "/student"], ["Book Catalog", "/books"], ["E-Books", "/ebooks"],
   ["My Profile", "/profile"], ["Issued Books", "/my-issued-books"], ["Reading History", "/reading-history"],
-  ["Reservations", "/reservations"], ["Requisitions", "/my-requisitions"],
+  ["Reservations", "/reservations"],
   ["Recommendations", "/recommendations"], ["Fine Status", "/fine-payment-status"],
   ["Notifications", "/notifications"]
 ];
