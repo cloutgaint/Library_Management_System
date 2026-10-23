@@ -41,6 +41,7 @@ function FineManagement() {
 
   // Pay fine
   const handlePayFine = async (id) => {
+    if (!window.confirm("Confirm that the library has received this fine payment? This records a manual payment; no online transaction will be processed.")) return;
     try {
       setMessage("");
       setError("");
@@ -61,7 +62,7 @@ function FineManagement() {
         throw new Error(data.message || "Failed to pay fine");
       }
 
-      setMessage("Fine paid successfully.");
+      setMessage("Manual fine payment recorded successfully.");
 
       // Update paid status in UI
       setFines((currentFines) =>
