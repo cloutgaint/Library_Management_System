@@ -329,9 +329,9 @@ export default function LibrarianDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
-<Phase8StaffOverview />
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-lg">
+    <div className="min-h-screen bg-slate-50 text-slate-800 lg:pl-72">
+
+      <header className="sticky top-0 z-30 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-lg">
         <div className="flex items-center justify-between px-5 py-4 sm:px-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-100">
@@ -350,7 +350,7 @@ export default function LibrarianDashboard() {
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="rounded-xl bg-white/15 px-4 py-2 text-2xl font-bold transition hover:bg-white/25"
+            className="rounded-xl bg-white/15 px-4 py-2 text-2xl font-bold transition hover:bg-white/25 lg:hidden"
             aria-label="Open menu"
           >
             ☰
@@ -359,12 +359,15 @@ export default function LibrarianDashboard() {
       </header>
 
       {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={closeSidebar} aria-hidden="true" />
+      )}
+      {true && (
         <div
-          className="fixed inset-0 z-50 bg-black/50"
+          className="fixed inset-0 z-50 pointer-events-none lg:inset-y-0 lg:left-0 lg:right-auto lg:w-72"
           onClick={closeSidebar}
         >
           <aside
-            className="flex h-full w-72 flex-col bg-slate-950 text-white shadow-2xl"
+            className={`pointer-events-auto fixed inset-y-0 left-0 flex h-dvh w-72 flex-col bg-slate-950 text-white shadow-2xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-800 px-5 py-5">
@@ -381,7 +384,7 @@ export default function LibrarianDashboard() {
               <button
                 type="button"
                 onClick={closeSidebar}
-                className="rounded-lg px-3 py-2 text-xl text-slate-300 hover:bg-slate-800 hover:text-white"
+                className="rounded-lg px-3 py-2 text-xl text-slate-300 hover:bg-slate-800 hover:text-white lg:hidden"
                 aria-label="Close menu"
               >
                 ✕
@@ -508,7 +511,8 @@ export default function LibrarianDashboard() {
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto max-w-7xl min-w-0 space-y-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="min-w-0"><Phase8StaffOverview /></div>
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
             {error}
