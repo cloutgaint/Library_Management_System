@@ -28,7 +28,6 @@ import AnalyticsDashboard from "./pages/analytics/AnalyticsDashboard";
 import Reports from "./pages/reports/Reports";
 import Charts from "./pages/analytics/Charts";
 import EbookPage from "./pages/ebooks/EbookPage";
-import MyRequisitions from "./pages/member/MyRequisitions";
 import Recommendations from "./pages/member/Recommendations";
 import UserManagement from "./pages/admin/UserManagement";
 
@@ -61,7 +60,6 @@ function App() {
       <Route path="/reading-history" element={guard(<ReadingHistory />, MEMBER)} />
       <Route path="/my-issued-books" element={guard(<MyIssuedBooks />, MEMBER)} />
       <Route path="/reservations" element={guard(<Reservation />, MEMBER)} />
-      <Route path="/my-requisitions" element={guard(<MyRequisitions />, MEMBER)} />
       <Route path="/recommendations" element={guard(<Recommendations />, MEMBER)} />
       <Route path="/fine-payment-status" element={guard(<FinePaymentStatus />)} />
 
