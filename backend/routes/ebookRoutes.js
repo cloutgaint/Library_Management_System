@@ -5,7 +5,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { getBookById } = require("../models/bookModel");
-const { createEbook, getEbookById } = require("../models/ebookModel");
+const { createEbook, getEbookById, getEbookByBookId } = require("../models/ebookModel");
 const privateDir = path.resolve(__dirname, "../private-ebooks");
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024, files: 1 } }).single("ebookFile");
 const validFile = (file) => {
@@ -39,20 +39,39 @@ router.post("/upload", authMiddleware, roleMiddleware("admin", "librarian"), (re
     if (!validFile(req.file)) return res.status(400).json({ message: "Select a valid PDF or EPUB (maximum 25 MB)." });
     const bookId = Number(req.body.bookId);
     if (!Number.isSafeInteger(bookId) || bookId <= 0) return res.status(400).json({ message: "Valid book ID required." });
+
     let storedPath;
+    let stage = "lookup_book";
     try {
       const book = await getBookById(bookId);
       if (!book) return res.status(404).json({ message: "Book not found." });
+
+      // Avoid multiple e-book records for the same catalog entry.
+      stage = "lookup_ebook";
+      const existing = await getEbookByBookId(bookId);
+      if (existing) {
+        return res.status(409).json({ message: "This book already has an E-Book record. Do not upload a duplicate; contact the librarian to replace it." });
+      }
+
+      stage = "write_file";
       const filename = crypto.randomUUID() + path.extname(req.file.originalname).toLowerCase();
       await fs.mkdir(privateDir, { recursive: true, mode: 0o700 });
       storedPath = path.join(privateDir, filename);
       await fs.writeFile(storedPath, req.file.buffer, { flag: "wx", mode: 0o600 });
+
+      stage = "save_ebook";
       const ebook = await createEbook(bookId, book.title, book.author, "private-ebook:" + filename);
-      return res.status(201).json({ message: "E-book uploaded.", ebook });
+      return res.status(201).json({ message: "E-book uploaded successfully.", ebook });
     } catch (error) {
       if (storedPath) await fs.unlink(storedPath).catch(() => {});
-      console.error("E-book upload failed:", error);
-      return res.status(500).json({ message: "E-book upload failed." });
+      console.error("E-book upload failed:", { stage, code: error.code, constraint: error.constraint, detail: error.detail, message: error.message });
+      if (error.code === "42P01") return res.status(503).json({ message: "E-Book database table is missing. Apply the existing database schema/migrations before uploading PDFs." });
+      if (error.code === "42703") return res.status(503).json({ message: "E-Book database columns are outdated. Database migration is required." });
+      if (error.code === "23503") return res.status(409).json({ message: "The linked catalog book no longer exists." });
+      if (error.code === "23505") return res.status(409).json({ message: "An E-Book is already linked to this book." });
+      if (error.code === "EACCES" || error.code === "EPERM" || error.code === "EROFS") return res.status(503).json({ message: "The backend cannot write to private-ebooks. Check folder ownership and permissions." });
+      if (error.code === "ENOSPC") return res.status(507).json({ message: "Server storage is full. Cannot upload PDF." });
+      return res.status(500).json({ message: "E-Book upload failed during " + stage + ". Check backend logs for the exact error." });
     }
   });
 });
