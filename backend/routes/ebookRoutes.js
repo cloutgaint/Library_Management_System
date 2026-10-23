@@ -60,7 +60,7 @@ router.post("/upload", authMiddleware, roleMiddleware("admin", "librarian"), (re
 router.get("/:id/read", authMiddleware, async (req, res) => {
   try {
     const ebook = await getEbookById(req.params.id);
-    const match = /^private-ebook:([a-f0-9-]{36})\\.(pdf|epub)$/.exec(ebook.file_url || "");
+    const match = new RegExp("^private-ebook:([a-f0-9-]{36})[.](pdf|epub)$").exec(ebook.file_url || "");
     if (!match) return res.status(404).json({ message: "No uploaded file available." });
     const filename = match[1] + "." + match[2];
     const file = await fs.readFile(path.join(privateDir, filename));
