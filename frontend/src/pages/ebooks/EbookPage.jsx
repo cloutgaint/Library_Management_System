@@ -8,6 +8,8 @@ function EbookPage() {
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [reader, setReader] = useState(null);
+  const [openingId, setOpeningId] = useState(null);
 
   const [formData, setFormData] = useState({
     bookId: "",
@@ -66,6 +68,34 @@ function EbookPage() {
   useEffect(() => {
     fetchEbooks();
   }, []);
+
+  const closeReader = () => {
+    if (reader?.url) URL.revokeObjectURL(reader.url);
+    setReader(null);
+  };
+
+  const openReader = async (ebook) => {
+    if (!String(ebook.file_url || "").startsWith("private-ebook:")) {
+      setError("No securely uploaded file is available for this book.");
+      return;
+    }
+    setOpeningId(ebook.id);
+    setError("");
+    try {
+      const response = await fetch(apiUrl(`/api/ebooks/${ebook.id}/read`), {
+        headers: { Authorization: `Bearer ${token}` }, cache: "no-store",
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || "Unable to open this book.");
+      }
+      const blob = await response.blob();
+      if (blob.type !== "application/pdf") throw new Error("EPUB preview is not yet supported. Ask the librarian for a PDF version.");
+      closeReader();
+      setReader({ title: ebook.title, url: URL.createObjectURL(blob) });
+    } catch (error) { setError(error.message || "Unable to open this book."); }
+    finally { setOpeningId(null); }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -323,14 +353,7 @@ function EbookPage() {
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <a
-                    href={ebook.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="min-w-[120px] flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-center font-medium text-white transition hover:bg-indigo-700"
-                  >
-                    📖 Open E-Book
-                  </a>
+                  <button type="button" onClick={() => openReader(ebook)} disabled={openingId === ebook.id} className="min-w-[120px] flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-center font-medium text-white transition hover:bg-indigo-700 disabled:opacity-50">{openingId === ebook.id ? "Opening…" : "📖 Read Book"}</button>
 
                   {canManageEbooks && (
                     <button
@@ -351,6 +374,15 @@ function EbookPage() {
         )}
       </main>
 
+      {reader && (
+        <div role="dialog" aria-modal="true" aria-label={reader.title} className="fixed inset-0 z-[60] flex flex-col bg-slate-950 p-2 sm:p-5">
+          <div className="flex items-center justify-between gap-4 pb-3 text-white">
+            <h2 className="truncate font-semibold">{reader.title}</h2>
+            <button type="button" onClick={closeReader} className="rounded-lg bg-slate-700 px-4 py-2">Close reader</button>
+          </div>
+          <iframe title={reader.title} src={reader.url + "#toolbar=0&navpanes=0"} className="min-h-0 w-full flex-1 rounded bg-white" />
+        </div>
+      )}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl">
