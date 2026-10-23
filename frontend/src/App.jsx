@@ -1,4 +1,5 @@
 import ProtectedRoute from "./components/ProtectedRoute";
+import LibraryShell from "./components/LibraryShell";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/auth/Login";
@@ -37,7 +38,7 @@ const STAFF = ["admin", "librarian"];
 const MEMBER = ["member"];
 
 // Route guards are for navigation only; the backend authorises every request.
-const guard = (element, roles) => <ProtectedRoute roles={roles}>{element}</ProtectedRoute>;
+const guard = (element, roles, dashboard = false) => <ProtectedRoute roles={roles}>{dashboard ? element : <LibraryShell>{element}</LibraryShell>}</ProtectedRoute>;
 
 function App() {
   return (
@@ -47,11 +48,11 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route path="/admin" element={guard(<AdminDashboard />, ["admin"])} />
+      <Route path="/admin" element={guard(<AdminDashboard />, ["admin"], true)} />
       <Route path="/admin/users" element={guard(<UserManagement />, ["admin"])} />
-      <Route path="/librarian" element={guard(<LibrarianDashboard />, ["librarian"])} />
-      <Route path="/student" element={guard(<StudentDashboard />, MEMBER)} />
-      <Route path="/member-dashboard" element={guard(<MemberDashboard />, MEMBER)} />
+      <Route path="/librarian" element={guard(<LibrarianDashboard />, ["librarian"], true)} />
+      <Route path="/student" element={guard(<StudentDashboard />, MEMBER, true)} />
+      <Route path="/member-dashboard" element={guard(<MemberDashboard />, MEMBER, true)} />
 
       <Route path="/books" element={guard(<BookCatalog />)} />
       <Route path="/ebooks" element={guard(<EbookPage />)} />
