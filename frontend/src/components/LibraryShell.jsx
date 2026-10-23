@@ -17,7 +17,7 @@ const librarianLinks = [
   ["Notifications", "/notifications"], ["Reports", "/reports"], ["Analytics", "/analytics"]
 ];
 const memberLinks = [
-  ["Dashboard", "/member-dashboard"], ["Book Catalog", "/books"], ["E-Books", "/ebooks"],
+  ["Dashboard", "/member-dashboard"], ["Student Dashboard", "/student"], ["Book Catalog", "/books"], ["E-Books", "/ebooks"],
   ["My Profile", "/profile"], ["Issued Books", "/my-issued-books"], ["Reading History", "/reading-history"],
   ["Reservations", "/reservations"], ["Requisitions", "/my-requisitions"],
   ["Recommendations", "/recommendations"], ["Fine Status", "/fine-payment-status"],
@@ -28,8 +28,8 @@ export default function LibraryShell({ children }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const role = (() => { try { return JSON.parse(localStorage.getItem("user") || "{}").role; } catch { return null; } })();
+  const { logout, user } = useAuth();
+  const role = String(user?.role || "").toLowerCase();
   const links = role === "admin" ? adminLinks : role === "librarian" ? librarianLinks : memberLinks;
   const home = role === "admin" ? "/admin" : role === "librarian" ? "/librarian" : "/member-dashboard";
   const current = links.find(([, url]) => url === location.pathname)?.[0] || "Library";
