@@ -456,7 +456,6 @@ export default function LibrarianDashboard() {
                 📚 E-Books
               </Link>
 
-              <Link to="/requisition-management" onClick={closeSidebar} className="block rounded-xl px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white">📋 Book Requisitions</Link>
               <Link
                 to="/reservation-queue"
                 onClick={closeSidebar}
