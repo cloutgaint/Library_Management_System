@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { apiRequest } from "../../lib/api";
+import PasswordField from "../../components/ui/PasswordField";
 // Completes both password resets and staff/member invitations (token in the URL fragment).
 export default function ResetPassword() {
   const [token] = useState(
@@ -13,7 +14,7 @@ export default function ResetPassword() {
   const submit = async (e) => {
     e.preventDefault();
     setResult(null);
-    if (!/[A-Za-z]/.test(password) || !/\d/.test(password))
+    if (password.length < 10 || !/[A-Za-z]/.test(password) || !/\d/.test(password))
       return setResult({
         ok: false,
         message: "Password must contain at least one letter and one number",
@@ -44,32 +45,8 @@ export default function ResetPassword() {
         <h1 className="text-xl font-bold">Choose a new password</h1>
         {!done && (
           <>
-            <label className="block">
-              New password
-              <input
-                type="password"
-                autoComplete="new-password"
-                minLength={10}
-                maxLength={128}
-                required
-                className="block w-full rounded border p-2"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-            <label className="block">
-              Confirm new password
-              <input
-                type="password"
-                autoComplete="new-password"
-                minLength={10}
-                maxLength={128}
-                required
-                className="block w-full rounded border p-2"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-              />
-            </label>
+            <PasswordField label="New password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
+            <PasswordField label="Confirm new password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
             <p className="text-xs text-gray-500">
               At least 10 characters, including a letter and a number.
             </p>
