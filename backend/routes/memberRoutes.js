@@ -17,6 +17,20 @@ const {
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
+const multer = require("multer");
+const handleProfileImageUpload = (req, res, next) => {
+  uploadMiddleware.single("profile_image")(req, res, (err) => {
+    if (!err) return next();
+    console.error("Profile image upload middleware error:", err);
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ message: err.code === "LIMIT_FILE_SIZE" ? "Profile image must be 5 MB or smaller." : err.message });
+    }
+    if (err.message && err.message.startsWith("Only JPG")) {
+      return res.status(400).json({ message: err.message });
+    }
+    return res.status(500).json({ message: "Profile image upload could not be completed. Check backend logs and upload directory permissions." });
+  });
+};
 router.get(
   "/",
   authMiddleware,
@@ -38,7 +52,7 @@ router.put(
 router.put(
   "/profile/image",
   authMiddleware,
-  uploadMiddleware.single("profile_image"),
+  handleProfileImageUpload,
   uploadProfileImage
 );
 
