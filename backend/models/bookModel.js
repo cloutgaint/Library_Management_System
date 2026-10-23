@@ -79,7 +79,7 @@ const getBookById = async (id) => {
     WHERE id = $1;
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [id]);
 
   if (!result.rows[0]) {
     return null;
