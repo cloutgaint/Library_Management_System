@@ -120,9 +120,9 @@ const addBook = async (req, res) => {
   } catch (error) {
     console.error("Create Book Error:", error);
 
-    res.status(500).json({
-      message: "Failed to create book",
-    });
+    if (error.code === "23505") return res.status(409).json({ message: "A book with this ISBN already exists." });
+    if (["23502","23503","23514","22P02"].includes(error.code)) return res.status(422).json({ message: "Book data violates a database requirement. Check the backend log." });
+    res.status(500).json({ message: "Failed to create book. Check the backend log for the database error." });
   }
 };
 
