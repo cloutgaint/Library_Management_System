@@ -43,6 +43,14 @@ const getEbookById = async (id) => {
   return result.rows[0];
 };
 
+const getEbookByBookId = async (bookId) => {
+  const result = await pool.query(
+    "SELECT id, book_id, title, author, file_url FROM ebooks WHERE book_id = $1 ORDER BY id DESC LIMIT 1",
+    [bookId]
+  );
+  return result.rows[0] || null;
+};
+
 const createEbook = async (bookId, title, author, fileUrl) => {
   const result = await pool.query(
     `
@@ -83,6 +91,7 @@ const deleteEbook = async (id) => {
 module.exports = {
   getAllEbooks,
   getEbookById,
+  getEbookByBookId,
   createEbook,
   deleteEbook,
 };
