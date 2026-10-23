@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config({ quiet: true });
 
 const authRoutes = require("./routes/authRoutes");
@@ -27,7 +28,7 @@ const origins=(process.env.CORS_ORIGINS||"http://localhost:5173,http://127.0.0.1
 app.use(cors({origin:(origin,cb)=>cb(null,!origin||origins.includes(origin)),credentials:false}));
 app.use(securityHeaders);
 app.use(express.json({limit:"1mb"}));
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.resolve(__dirname, "uploads")));
 
 // Authentication routes
 app.use("/api/auth", authRoutes);
